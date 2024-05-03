@@ -16,6 +16,10 @@ import io.flutter.plugin.common.StandardMessageCodec;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /** Generated class from Pigeon. */
@@ -99,10 +103,7 @@ public class Messages {
     static @NonNull TextureMessage fromList(@NonNull ArrayList<Object> list) {
       TextureMessage pigeonResult = new TextureMessage();
       Object textureId = list.get(0);
-      pigeonResult.setTextureId(
-          (textureId == null)
-              ? null
-              : ((textureId instanceof Integer) ? (Integer) textureId : (Long) textureId));
+      pigeonResult.setTextureId((textureId == null) ? null : ((textureId instanceof Integer) ? (Integer) textureId : (Long) textureId));
       return pigeonResult;
     }
   }
@@ -173,10 +174,7 @@ public class Messages {
     static @NonNull LoopingMessage fromList(@NonNull ArrayList<Object> list) {
       LoopingMessage pigeonResult = new LoopingMessage();
       Object textureId = list.get(0);
-      pigeonResult.setTextureId(
-          (textureId == null)
-              ? null
-              : ((textureId instanceof Integer) ? (Integer) textureId : (Long) textureId));
+      pigeonResult.setTextureId((textureId == null) ? null : ((textureId instanceof Integer) ? (Integer) textureId : (Long) textureId));
       Object isLooping = list.get(1);
       pigeonResult.setIsLooping((Boolean) isLooping);
       return pigeonResult;
@@ -249,10 +247,7 @@ public class Messages {
     static @NonNull VolumeMessage fromList(@NonNull ArrayList<Object> list) {
       VolumeMessage pigeonResult = new VolumeMessage();
       Object textureId = list.get(0);
-      pigeonResult.setTextureId(
-          (textureId == null)
-              ? null
-              : ((textureId instanceof Integer) ? (Integer) textureId : (Long) textureId));
+      pigeonResult.setTextureId((textureId == null) ? null : ((textureId instanceof Integer) ? (Integer) textureId : (Long) textureId));
       Object volume = list.get(1);
       pigeonResult.setVolume((Double) volume);
       return pigeonResult;
@@ -325,10 +320,7 @@ public class Messages {
     static @NonNull PlaybackSpeedMessage fromList(@NonNull ArrayList<Object> list) {
       PlaybackSpeedMessage pigeonResult = new PlaybackSpeedMessage();
       Object textureId = list.get(0);
-      pigeonResult.setTextureId(
-          (textureId == null)
-              ? null
-              : ((textureId instanceof Integer) ? (Integer) textureId : (Long) textureId));
+      pigeonResult.setTextureId((textureId == null) ? null : ((textureId instanceof Integer) ? (Integer) textureId : (Long) textureId));
       Object speed = list.get(1);
       pigeonResult.setSpeed((Double) speed);
       return pigeonResult;
@@ -401,15 +393,9 @@ public class Messages {
     static @NonNull PositionMessage fromList(@NonNull ArrayList<Object> list) {
       PositionMessage pigeonResult = new PositionMessage();
       Object textureId = list.get(0);
-      pigeonResult.setTextureId(
-          (textureId == null)
-              ? null
-              : ((textureId instanceof Integer) ? (Integer) textureId : (Long) textureId));
+      pigeonResult.setTextureId((textureId == null) ? null : ((textureId instanceof Integer) ? (Integer) textureId : (Long) textureId));
       Object position = list.get(1);
-      pigeonResult.setPosition(
-          (position == null)
-              ? null
-              : ((position instanceof Integer) ? (Integer) position : (Long) position));
+      pigeonResult.setPosition((position == null) ? null : ((position instanceof Integer) ? (Integer) position : (Long) position));
       return pigeonResult;
     }
   }
@@ -548,6 +534,163 @@ public class Messages {
   }
 
   /** Generated class from Pigeon that represents data sent in messages. */
+  public static final class UpdateMessage {
+    private @NonNull Long textureId;
+
+    public @NonNull Long getTextureId() {
+      return textureId;
+    }
+
+    public void setTextureId(@NonNull Long setterArg) {
+      if (setterArg == null) {
+        throw new IllegalStateException("Nonnull field \"textureId\" is null.");
+      }
+      this.textureId = setterArg;
+    }
+
+    private @Nullable String asset;
+
+    public @Nullable String getAsset() {
+      return asset;
+    }
+
+    public void setAsset(@Nullable String setterArg) {
+      this.asset = setterArg;
+    }
+
+    private @Nullable String uri;
+
+    public @Nullable String getUri() {
+      return uri;
+    }
+
+    public void setUri(@Nullable String setterArg) {
+      this.uri = setterArg;
+    }
+
+    private @Nullable String packageName;
+
+    public @Nullable String getPackageName() {
+      return packageName;
+    }
+
+    public void setPackageName(@Nullable String setterArg) {
+      this.packageName = setterArg;
+    }
+
+    private @Nullable String formatHint;
+
+    public @Nullable String getFormatHint() {
+      return formatHint;
+    }
+
+    public void setFormatHint(@Nullable String setterArg) {
+      this.formatHint = setterArg;
+    }
+
+    private @NonNull Map<String, String> httpHeaders;
+
+    public @NonNull Map<String, String> getHttpHeaders() {
+      return httpHeaders;
+    }
+
+    public void setHttpHeaders(@NonNull Map<String, String> setterArg) {
+      if (setterArg == null) {
+        throw new IllegalStateException("Nonnull field \"httpHeaders\" is null.");
+      }
+      this.httpHeaders = setterArg;
+    }
+
+    /** Constructor is non-public to enforce null safety; use Builder. */
+    UpdateMessage() {}
+
+    public static final class Builder {
+
+      private @Nullable Long textureId;
+
+      public @NonNull Builder setTextureId(@NonNull Long setterArg) {
+        this.textureId = setterArg;
+        return this;
+      }
+
+      private @Nullable String asset;
+
+      public @NonNull Builder setAsset(@Nullable String setterArg) {
+        this.asset = setterArg;
+        return this;
+      }
+
+      private @Nullable String uri;
+
+      public @NonNull Builder setUri(@Nullable String setterArg) {
+        this.uri = setterArg;
+        return this;
+      }
+
+      private @Nullable String packageName;
+
+      public @NonNull Builder setPackageName(@Nullable String setterArg) {
+        this.packageName = setterArg;
+        return this;
+      }
+
+      private @Nullable String formatHint;
+
+      public @NonNull Builder setFormatHint(@Nullable String setterArg) {
+        this.formatHint = setterArg;
+        return this;
+      }
+
+      private @Nullable Map<String, String> httpHeaders;
+
+      public @NonNull Builder setHttpHeaders(@NonNull Map<String, String> setterArg) {
+        this.httpHeaders = setterArg;
+        return this;
+      }
+
+      public @NonNull UpdateMessage build() {
+        UpdateMessage pigeonReturn = new UpdateMessage();
+        pigeonReturn.setTextureId(textureId);
+        pigeonReturn.setAsset(asset);
+        pigeonReturn.setUri(uri);
+        pigeonReturn.setPackageName(packageName);
+        pigeonReturn.setFormatHint(formatHint);
+        pigeonReturn.setHttpHeaders(httpHeaders);
+        return pigeonReturn;
+      }
+    }
+
+    @NonNull
+    ArrayList<Object> toList() {
+      ArrayList<Object> toListResult = new ArrayList<Object>(6);
+      toListResult.add(textureId);
+      toListResult.add(asset);
+      toListResult.add(uri);
+      toListResult.add(packageName);
+      toListResult.add(formatHint);
+      toListResult.add(httpHeaders);
+      return toListResult;
+    }
+
+    static @NonNull UpdateMessage fromList(@NonNull ArrayList<Object> list) {
+      UpdateMessage pigeonResult = new UpdateMessage();
+      Object textureId = list.get(0);
+      pigeonResult.setTextureId((textureId == null) ? null : ((textureId instanceof Integer) ? (Integer) textureId : (Long) textureId));
+      Object asset = list.get(1);
+      pigeonResult.setAsset((String) asset);
+      Object uri = list.get(2);
+      pigeonResult.setUri((String) uri);
+      Object packageName = list.get(3);
+      pigeonResult.setPackageName((String) packageName);
+      Object formatHint = list.get(4);
+      pigeonResult.setFormatHint((String) formatHint);
+      Object httpHeaders = list.get(5);
+      pigeonResult.setHttpHeaders((Map<String, String>) httpHeaders);
+      return pigeonResult;
+    }
+  }
+
+  /** Generated class from Pigeon that represents data sent in messages. */
   public static final class MixWithOthersMessage {
     private @NonNull Boolean mixWithOthers;
 
@@ -617,6 +760,8 @@ public class Messages {
         case (byte) 133:
           return TextureMessage.fromList((ArrayList<Object>) readValue(buffer));
         case (byte) 134:
+          return UpdateMessage.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 135:
           return VolumeMessage.fromList((ArrayList<Object>) readValue(buffer));
         default:
           return super.readValueOfType(type, buffer);
@@ -643,8 +788,11 @@ public class Messages {
       } else if (value instanceof TextureMessage) {
         stream.write(133);
         writeValue(stream, ((TextureMessage) value).toList());
-      } else if (value instanceof VolumeMessage) {
+      } else if (value instanceof UpdateMessage) {
         stream.write(134);
+        writeValue(stream, ((UpdateMessage) value).toList());
+      } else if (value instanceof VolumeMessage) {
+        stream.write(135);
         writeValue(stream, ((VolumeMessage) value).toList());
       } else {
         super.writeValue(stream, value);
@@ -659,6 +807,8 @@ public class Messages {
 
     @NonNull
     TextureMessage create(@NonNull CreateMessage msg);
+
+    void update(@NonNull UpdateMessage msg);
 
     void dispose(@NonNull TextureMessage msg);
 
@@ -683,12 +833,8 @@ public class Messages {
     static @NonNull MessageCodec<Object> getCodec() {
       return AndroidVideoPlayerApiCodec.INSTANCE;
     }
-    /**
-     * Sets up an instance of `AndroidVideoPlayerApi` to handle messages through the
-     * `binaryMessenger`.
-     */
-    static void setup(
-        @NonNull BinaryMessenger binaryMessenger, @Nullable AndroidVideoPlayerApi api) {
+    /**Sets up an instance of `AndroidVideoPlayerApi` to handle messages through the `binaryMessenger`. */
+    static void setup(@NonNull BinaryMessenger binaryMessenger, @Nullable AndroidVideoPlayerApi api) {
       {
         BasicMessageChannel<Object> channel =
             new BasicMessageChannel<>(
@@ -723,6 +869,29 @@ public class Messages {
                 try {
                   TextureMessage output = api.create(msgArg);
                   wrapped.add(0, output);
+                } catch (Throwable exception) {
+                  ArrayList<Object> wrappedError = wrapError(exception);
+                  wrapped = wrappedError;
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.AndroidVideoPlayerApi.update", getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<Object>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                UpdateMessage msgArg = (UpdateMessage) args.get(0);
+                try {
+                  api.update(msgArg);
+                  wrapped.add(0, null);
                 } catch (Throwable exception) {
                   ArrayList<Object> wrappedError = wrapError(exception);
                   wrapped = wrappedError;

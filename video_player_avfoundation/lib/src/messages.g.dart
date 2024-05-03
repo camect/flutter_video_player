@@ -71,12 +71,62 @@ class CreationOptions {
   }
 }
 
+class UpdateMessage {
+  UpdateMessage({
+    required this.textureId,
+    this.asset,
+    this.uri,
+    this.packageName,
+    this.formatHint,
+    required this.httpHeaders,
+  });
+
+  int textureId;
+
+  String? asset;
+
+  String? uri;
+
+  String? packageName;
+
+  String? formatHint;
+
+  Map<String?, String?> httpHeaders;
+
+  Object encode() {
+    return <Object?>[
+      textureId,
+      asset,
+      uri,
+      packageName,
+      formatHint,
+      httpHeaders,
+    ];
+  }
+
+  static UpdateMessage decode(Object result) {
+    result as List<Object?>;
+    return UpdateMessage(
+      textureId: result[0]! as int,
+      asset: result[1] as String?,
+      uri: result[2] as String?,
+      packageName: result[3] as String?,
+      formatHint: result[4] as String?,
+      httpHeaders:
+          (result[5] as Map<Object?, Object?>?)!.cast<String?, String?>(),
+    );
+  }
+}
+
 class _AVFoundationVideoPlayerApiCodec extends StandardMessageCodec {
   const _AVFoundationVideoPlayerApiCodec();
   @override
   void writeValue(WriteBuffer buffer, Object? value) {
     if (value is CreationOptions) {
       buffer.putUint8(128);
+      writeValue(buffer, value.encode());
+    } else if (value is UpdateMessage) {
+      buffer.putUint8(129);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -88,6 +138,8 @@ class _AVFoundationVideoPlayerApiCodec extends StandardMessageCodec {
     switch (type) {
       case 128:
         return CreationOptions.decode(readValue(buffer)!);
+      case 129:
+        return UpdateMessage.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
     }
@@ -160,6 +212,30 @@ class AVFoundationVideoPlayerApi {
       );
     } else {
       return (__pigeon_replyList[0] as int?)!;
+    }
+  }
+
+  Future<void> update(UpdateMessage msg) async {
+    final String __pigeon_channelName =
+        'dev.flutter.pigeon.video_player_avfoundation.AVFoundationVideoPlayerApi.update$__pigeon_messageChannelSuffix';
+    final BasicMessageChannel<Object?> __pigeon_channel =
+        BasicMessageChannel<Object?>(
+      __pigeon_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: __pigeon_binaryMessenger,
+    );
+    final List<Object?>? __pigeon_replyList =
+        await __pigeon_channel.send(<Object?>[msg]) as List<Object?>?;
+    if (__pigeon_replyList == null) {
+      throw _createConnectionError(__pigeon_channelName);
+    } else if (__pigeon_replyList.length > 1) {
+      throw PlatformException(
+        code: __pigeon_replyList[0]! as String,
+        message: __pigeon_replyList[1] as String?,
+        details: __pigeon_replyList[2],
+      );
+    } else {
+      return;
     }
   }
 

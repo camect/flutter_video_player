@@ -14,6 +14,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @class FVPCreationOptions;
+@class FVPUpdateMessage;
 
 @interface FVPCreationOptions : NSObject
 /// `init` unavailable to enforce nonnull fields, see the `make` class method.
@@ -23,11 +24,28 @@ NS_ASSUME_NONNULL_BEGIN
                   packageName:(nullable NSString *)packageName
                    formatHint:(nullable NSString *)formatHint
                   httpHeaders:(NSDictionary<NSString *, NSString *> *)httpHeaders;
-@property(nonatomic, copy, nullable) NSString *asset;
-@property(nonatomic, copy, nullable) NSString *uri;
-@property(nonatomic, copy, nullable) NSString *packageName;
-@property(nonatomic, copy, nullable) NSString *formatHint;
-@property(nonatomic, copy) NSDictionary<NSString *, NSString *> *httpHeaders;
+@property(nonatomic, copy, nullable) NSString * asset;
+@property(nonatomic, copy, nullable) NSString * uri;
+@property(nonatomic, copy, nullable) NSString * packageName;
+@property(nonatomic, copy, nullable) NSString * formatHint;
+@property(nonatomic, copy) NSDictionary<NSString *, NSString *> * httpHeaders;
+@end
+
+@interface FVPUpdateMessage : NSObject
+/// `init` unavailable to enforce nonnull fields, see the `make` class method.
+- (instancetype)init NS_UNAVAILABLE;
++ (instancetype)makeWithTextureId:(NSInteger )textureId
+                            asset:(nullable NSString *)asset
+                              uri:(nullable NSString *)uri
+                      packageName:(nullable NSString *)packageName
+                       formatHint:(nullable NSString *)formatHint
+                      httpHeaders:(NSDictionary<NSString *, NSString *> *)httpHeaders;
+@property(nonatomic, assign) NSInteger  textureId;
+@property(nonatomic, copy, nullable) NSString * asset;
+@property(nonatomic, copy, nullable) NSString * uri;
+@property(nonatomic, copy, nullable) NSString * packageName;
+@property(nonatomic, copy, nullable) NSString * formatHint;
+@property(nonatomic, copy) NSDictionary<NSString *, NSString *> * httpHeaders;
 @end
 
 /// The codec used by FVPAVFoundationVideoPlayerApi.
@@ -36,35 +54,22 @@ NSObject<FlutterMessageCodec> *FVPAVFoundationVideoPlayerApiGetCodec(void);
 @protocol FVPAVFoundationVideoPlayerApi
 - (void)initialize:(FlutterError *_Nullable *_Nonnull)error;
 /// @return `nil` only when `error != nil`.
-- (nullable NSNumber *)createWithOptions:(FVPCreationOptions *)creationOptions
-                                   error:(FlutterError *_Nullable *_Nonnull)error;
+- (nullable NSNumber *)createWithOptions:(FVPCreationOptions *)creationOptions error:(FlutterError *_Nullable *_Nonnull)error;
+- (void)update:(FVPUpdateMessage *)msg error:(FlutterError *_Nullable *_Nonnull)error;
 - (void)disposePlayer:(NSInteger)textureId error:(FlutterError *_Nullable *_Nonnull)error;
-- (void)setLooping:(BOOL)isLooping
-         forPlayer:(NSInteger)textureId
-             error:(FlutterError *_Nullable *_Nonnull)error;
-- (void)setVolume:(double)volume
-        forPlayer:(NSInteger)textureId
-            error:(FlutterError *_Nullable *_Nonnull)error;
-- (void)setPlaybackSpeed:(double)speed
-               forPlayer:(NSInteger)textureId
-                   error:(FlutterError *_Nullable *_Nonnull)error;
+- (void)setLooping:(BOOL)isLooping forPlayer:(NSInteger)textureId error:(FlutterError *_Nullable *_Nonnull)error;
+- (void)setVolume:(double)volume forPlayer:(NSInteger)textureId error:(FlutterError *_Nullable *_Nonnull)error;
+- (void)setPlaybackSpeed:(double)speed forPlayer:(NSInteger)textureId error:(FlutterError *_Nullable *_Nonnull)error;
 - (void)playPlayer:(NSInteger)textureId error:(FlutterError *_Nullable *_Nonnull)error;
 /// @return `nil` only when `error != nil`.
-- (nullable NSNumber *)positionForPlayer:(NSInteger)textureId
-                                   error:(FlutterError *_Nullable *_Nonnull)error;
-- (void)seekTo:(NSInteger)position
-     forPlayer:(NSInteger)textureId
-    completion:(void (^)(FlutterError *_Nullable))completion;
+- (nullable NSNumber *)positionForPlayer:(NSInteger)textureId error:(FlutterError *_Nullable *_Nonnull)error;
+- (void)seekTo:(NSInteger)position forPlayer:(NSInteger)textureId completion:(void (^)(FlutterError *_Nullable))completion;
 - (void)pausePlayer:(NSInteger)textureId error:(FlutterError *_Nullable *_Nonnull)error;
 - (void)setMixWithOthers:(BOOL)mixWithOthers error:(FlutterError *_Nullable *_Nonnull)error;
 @end
 
-extern void SetUpFVPAVFoundationVideoPlayerApi(
-    id<FlutterBinaryMessenger> binaryMessenger,
-    NSObject<FVPAVFoundationVideoPlayerApi> *_Nullable api);
+extern void SetUpFVPAVFoundationVideoPlayerApi(id<FlutterBinaryMessenger> binaryMessenger, NSObject<FVPAVFoundationVideoPlayerApi> *_Nullable api);
 
-extern void SetUpFVPAVFoundationVideoPlayerApiWithSuffix(
-    id<FlutterBinaryMessenger> binaryMessenger,
-    NSObject<FVPAVFoundationVideoPlayerApi> *_Nullable api, NSString *messageChannelSuffix);
+extern void SetUpFVPAVFoundationVideoPlayerApiWithSuffix(id<FlutterBinaryMessenger> binaryMessenger, NSObject<FVPAVFoundationVideoPlayerApi> *_Nullable api, NSString *messageChannelSuffix);
 
 NS_ASSUME_NONNULL_END

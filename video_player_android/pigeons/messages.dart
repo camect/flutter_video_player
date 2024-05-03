@@ -51,6 +51,16 @@ class CreateMessage {
   Map<String?, String?> httpHeaders;
 }
 
+class UpdateMessage {
+  UpdateMessage(this.textureId, {required this.httpHeaders});
+  int textureId;
+  String? asset;
+  String? uri;
+  String? packageName;
+  String? formatHint;
+  Map<String?, String?> httpHeaders;
+}
+
 class MixWithOthersMessage {
   MixWithOthersMessage(this.mixWithOthers);
   bool mixWithOthers;
@@ -60,6 +70,7 @@ class MixWithOthersMessage {
 abstract class AndroidVideoPlayerApi {
   void initialize();
   TextureMessage create(CreateMessage msg);
+  void update(UpdateMessage msg);
   void dispose(TextureMessage msg);
   void setLooping(LoopingMessage msg);
   void setVolume(VolumeMessage msg);

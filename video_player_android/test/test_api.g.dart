@@ -35,8 +35,11 @@ class _TestHostVideoPlayerApiCodec extends StandardMessageCodec {
     } else if (value is TextureMessage) {
       buffer.putUint8(133);
       writeValue(buffer, value.encode());
-    } else if (value is VolumeMessage) {
+    } else if (value is UpdateMessage) {
       buffer.putUint8(134);
+      writeValue(buffer, value.encode());
+    } else if (value is VolumeMessage) {
+      buffer.putUint8(135);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -59,6 +62,8 @@ class _TestHostVideoPlayerApiCodec extends StandardMessageCodec {
       case 133:
         return TextureMessage.decode(readValue(buffer)!);
       case 134:
+        return UpdateMessage.decode(readValue(buffer)!);
+      case 135:
         return VolumeMessage.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -74,6 +79,8 @@ abstract class TestHostVideoPlayerApi {
   void initialize();
 
   TextureMessage create(CreateMessage msg);
+
+  void update(UpdateMessage msg);
 
   void dispose(TextureMessage msg);
 
@@ -131,6 +138,28 @@ abstract class TestHostVideoPlayerApi {
               'Argument for dev.flutter.pigeon.AndroidVideoPlayerApi.create was null, expected non-null CreateMessage.');
           final TextureMessage output = api.create(arg_msg!);
           return <Object?>[output];
+        });
+      }
+    }
+    {
+      final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+          'dev.flutter.pigeon.AndroidVideoPlayerApi.update', codec,
+          binaryMessenger: binaryMessenger);
+      if (api == null) {
+        _testBinaryMessengerBinding!.defaultBinaryMessenger
+            .setMockDecodedMessageHandler<Object?>(channel, null);
+      } else {
+        _testBinaryMessengerBinding!.defaultBinaryMessenger
+            .setMockDecodedMessageHandler<Object?>(channel,
+                (Object? message) async {
+          assert(message != null,
+              'Argument for dev.flutter.pigeon.AndroidVideoPlayerApi.update was null.');
+          final List<Object?> args = (message as List<Object?>?)!;
+          final UpdateMessage? arg_msg = (args[0] as UpdateMessage?);
+          assert(arg_msg != null,
+              'Argument for dev.flutter.pigeon.AndroidVideoPlayerApi.update was null, expected non-null UpdateMessage.');
+          api.update(arg_msg!);
+          return <Object?>[];
         });
       }
     }
