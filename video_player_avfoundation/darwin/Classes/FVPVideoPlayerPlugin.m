@@ -134,6 +134,25 @@ static void *rateContext = &rateContext;
                  registrar:registrar];
 }
 
+- (void)updateWithAsset:(NSString *)asset
+            frameUpdater:(FVPFrameUpdater *)frameUpdater
+               avFactory:(id<FVPAVFactory>)avFactory
+               registrar:(NSObject<FlutterPluginRegistrar> *)registrar {
+     NSString *path = [[NSBundle mainBundle] pathForResource:asset ofType:nil];
+ #if TARGET_OS_OSX
+     // See https://github.com/flutter/flutter/issues/135302
+     // TODO(stuartmorgan): Remove this if the asset APIs are adjusted to work better for macOS.
+     if (!path) {
+         path = [NSURL URLWithString:asset relativeToURL:NSBundle.mainBundle.bundleURL].path;
+     }
+ #endif
+     [self updateWithURL:[NSURL fileURLWithPath:path]
+            frameUpdater:frameUpdater
+             httpHeaders:@{}
+               avFactory:avFactory
+               registrar:registrar];
+ }
+
 - (void)dealloc {
   if (!_disposed) {
     [self removeKeyValueObservers];
@@ -260,6 +279,23 @@ NS_INLINE CGFloat radiansToDegrees(CGFloat radians) {
                         registrar:registrar];
 }
 
+- (void )updateWithURL:(NSURL *)url
+           frameUpdater:(FVPFrameUpdater *)frameUpdater
+            httpHeaders:(nonnull NSDictionary<NSString *, NSString *> *)headers
+              avFactory:(id<FVPAVFactory>)avFactory
+              registrar:(NSObject<FlutterPluginRegistrar> *)registrar {
+     NSDictionary<NSString *, id> *options = nil;
+     if ([headers count] != 0) {
+         options = @{@"AVURLAssetHTTPHeaderFieldsKey" : headers};
+     }
+     AVURLAsset *urlAsset = [AVURLAsset URLAssetWithURL:url options:options];
+     AVPlayerItem *item = [AVPlayerItem playerItemWithAsset:urlAsset];
+     [self updateWithPlayerItem:item
+                   frameUpdater:frameUpdater
+                      avFactory:avFactory
+                      registrar:registrar];
+ }
+
 - (instancetype)initWithPlayerItem:(AVPlayerItem *)item
                       frameUpdater:(FVPFrameUpdater *)frameUpdater
                        displayLink:(FVPDisplayLink *)displayLink
@@ -326,6 +362,58 @@ NS_INLINE CGFloat radiansToDegrees(CGFloat radians) {
 
   return self;
 }
+
+- (void)updateWithPlayerItem:(AVPlayerItem *)item
+                 frameUpdater:(FVPFrameUpdater *)frameUpdater
+                    avFactory:(id<FVPAVFactory>)avFactory
+                    registrar:(NSObject<FlutterPluginRegistrar> *)registrar {
+
+     _registrar = registrar;
+
+     AVAsset *asset = [item asset];
+     void (^assetCompletionHandler)(void) = ^{
+         if ([asset statusOfValueForKey:@"tracks" error:nil] == AVKeyValueStatusLoaded) {
+             NSArray *tracks = [asset tracksWithMediaType:AVMediaTypeVideo];
+             if ([tracks count] > 0) {
+                 AVAssetTrack *videoTrack = tracks[0];
+                 void (^trackCompletionHandler)(void) = ^{
+                     if (self->_disposed) return;
+                     if ([videoTrack statusOfValueForKey:@"preferredTransform"
+                                                   error:nil] == AVKeyValueStatusLoaded) {
+                         // Rotate the video by using a videoComposition and the preferredTransform
+                         self->_preferredTransform = FVPGetStandardizedTransformForTrack(videoTrack);
+                         // Note:
+                         // https://developer.apple.com/documentation/avfoundation/avplayeritem/1388818-videocomposition
+                         // Video composition can only be used with file-based media and is not supported for
+                         // use with media served using HTTP Live Streaming.
+                         AVMutableVideoComposition *videoComposition =
+                         [self getVideoCompositionWithTransform:self->_preferredTransform
+                                                      withAsset:asset
+                                                 withVideoTrack:videoTrack];
+                         item.videoComposition = videoComposition;
+                     }
+                 };
+                 [videoTrack loadValuesAsynchronouslyForKeys:@[ @"preferredTransform" ]
+                                           completionHandler:trackCompletionHandler];
+             }
+         }
+     };
+
+     [_player replaceCurrentItemWithPlayerItem:item];
+
+     // This is to fix 2 bugs: 1. blank video for encrypted video streams on iOS 16
+     // (https://github.com/flutter/flutter/issues/111457) and 2. swapped width and height for some
+     // video streams (not just iOS 16).  (https://github.com/flutter/flutter/issues/109116). An
+     // invisible AVPlayerLayer is used to overwrite the protection of pixel buffers in those streams
+     // for issue #1, and restore the correct width and height for issue #2.
+     _playerLayer = [AVPlayerLayer playerLayerWithPlayer:_player];
+     [self.flutterViewLayer addSublayer:_playerLayer];
+
+     [self addObserversForItem:item player:_player];
+
+     [asset loadValuesAsynchronouslyForKeys:@[ @"tracks" ] completionHandler:assetCompletionHandler];
+
+ }
 
 - (void)observeValueForKeyPath:(NSString *)path
                       ofObject:(id)object
@@ -759,6 +847,40 @@ NS_INLINE CGFloat radiansToDegrees(CGFloat radians) {
     *error = [FlutterError errorWithCode:@"video_player" message:@"not implemented" details:nil];
     return nil;
   }
+}
+
+
+- (void)update:(FVPUpdateMessage *)input error:(FlutterError **)error {
+    FVPFrameUpdater *frameUpdater = [[FVPFrameUpdater alloc] initWithRegistry:_registry];
+
+    FVPVideoPlayer *player = self.playersByTextureId[@(input.textureId)];;
+    if (input.asset) {
+        NSString *assetPath;
+        if (input.packageName) {
+            assetPath = [_registrar lookupKeyForAsset:input.asset fromPackage:input.packageName];
+        } else {
+            assetPath = [_registrar lookupKeyForAsset:input.asset];
+        }
+        @try {
+            [player updateWithAsset:assetPath
+                      frameUpdater:frameUpdater
+
+                          avFactory:_avFactory
+                          registrar:self.registrar];
+            [self onPlayerSetup:player frameUpdater:frameUpdater];
+        } @catch (NSException *exception) {
+            *error = [FlutterError errorWithCode:@"video_player" message:exception.reason details:nil];
+        }
+    } else if (input.uri) {
+        [player updateWithURL:[NSURL URLWithString:input.uri]
+                frameUpdater:frameUpdater
+                  httpHeaders:input.httpHeaders
+                    avFactory:_avFactory
+                    registrar:self.registrar];
+        [self onPlayerSetup:player frameUpdater:frameUpdater];
+    } else {
+        *error = [FlutterError errorWithCode:@"video_player" message:@"not implemented" details:nil];
+    }
 }
 
 - (void)disposePlayer:(NSInteger)textureId error:(FlutterError **)error {
