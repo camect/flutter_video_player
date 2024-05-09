@@ -5,8 +5,7 @@ issue_tracker: https://github.com/flutter/flutter/issues?q=is%3Aissue+is%3Aopen+
 version: 2.3.0
 
 environment:
-  sdk: ^3.3.0
-  flutter: ">=3.19.0"
+  sdk: '>=3.2.6 <4.0.0'
 
 flutter:
   plugin:
@@ -26,7 +25,7 @@ dependencies:
        url: https://github.com/camect/flutter_video_player
        ref: 2.8.6_change_source
        path: video_player_platform_interface
-  web: ^0.5.1
+  web: ^0.3.0
 
 dev_dependencies:
   flutter_test:
