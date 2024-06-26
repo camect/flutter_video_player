@@ -27,23 +27,23 @@ dependencies:
   html: ^0.15.0
   video_player_android:
     git:
-      url: https://github.com/MohamedRisaldarTA/flutter_video_player
-      ref: change_source
+      url: https://github.com/camect/flutter_video_player
+      ref: 2.8.2_change_source
       path: video_player_android
   video_player_avfoundation:
     git:
-      url: https://github.com/MohamedRisaldarTA/flutter_video_player
-      ref: change_source
+      url: https://github.com/camect/flutter_video_player
+      ref: 2.8.2_change_source
       path: video_player_avfoundation
   video_player_platform_interface:
     git:
-      url: https://github.com/MohamedRisaldarTA/flutter_video_player
-      ref: change_source
+      url: https://github.com/camect/flutter_video_player
+      ref: 2.8.2_change_source
       path: video_player_platform_interface
   video_player_web:
     git:
-      url: https://github.com/MohamedRisaldarTA/flutter_video_player
-      ref: change_source
+      url: https://github.com/camect/flutter_video_player
+      ref: 2.8.2_change_source
       path: video_player_web
 
 dev_dependencies:

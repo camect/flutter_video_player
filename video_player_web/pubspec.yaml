@@ -23,8 +23,8 @@ dependencies:
     sdk: flutter
   video_player_platform_interface:
     git:
-      url: https://github.com/MohamedRisaldarTA/flutter_video_player
-      ref: change_source
+      url: https://github.com/camect/flutter_video_player
+      ref: 2.8.2_change_source
       path: video_player_platform_interface
 
 dev_dependencies:
