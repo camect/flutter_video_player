@@ -227,11 +227,7 @@ final class VideoPlayer {
           @Override
           public void onPlayerError(@NonNull final PlaybackException error) {
             setBuffering(false);
-            if (error.errorCode == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW) {
-              // See https://exoplayer.dev/live-streaming.html#behindlivewindowexception-and-error_code_behind_live_window
-              exoPlayer.seekToDefaultPosition();
-              exoPlayer.prepare();
-            } else if (eventSink != null) {
+            if (eventSink != null) {
               eventSink.error("VideoError", "Video player had error " + error, null);
             }
           }
@@ -261,6 +257,26 @@ final class VideoPlayer {
     exoPlayer.setAudioAttributes(
         new AudioAttributes.Builder().setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(),
         !isMixMode);
+  }
+
+  void update(
+          Context context,
+          String dataSource,
+          String formatHint,
+          @NonNull Map<String, String> httpHeaders) {
+
+    Uri uri = Uri.parse(dataSource);
+
+    buildHttpDataSourceFactory(httpHeaders);
+    DataSource.Factory dataSourceFactory =
+            new DefaultDataSource.Factory(context, httpDataSourceFactory);
+
+    MediaSource mediaSource = buildMediaSource(uri, dataSourceFactory, formatHint);
+
+    exoPlayer.stop();
+    exoPlayer.setMediaSource(mediaSource);
+    exoPlayer.prepare();
+    exoPlayer.setPlayWhenReady(true);
   }
 
   void play() {

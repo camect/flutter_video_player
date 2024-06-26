@@ -12,25 +12,25 @@ import 'test_api.g.dart';
 
 class _ApiLogger implements TestHostVideoPlayerApi {
   final List<String> log = <String>[];
-  int? textureId;
-  CreationOptions? creationOptions;
-  int? position;
-  bool? looping;
-  double? volume;
-  double? playbackSpeed;
-  bool? mixWithOthers;
+  TextureMessage? textureMessage;
+  CreateMessage? createMessage;
+  PositionMessage? positionMessage;
+  LoopingMessage? loopingMessage;
+  VolumeMessage? volumeMessage;
+  PlaybackSpeedMessage? playbackSpeedMessage;
+  MixWithOthersMessage? mixWithOthersMessage;
 
   @override
-  int create(CreationOptions options) {
+  TextureMessage create(CreateMessage arg) {
     log.add('create');
-    creationOptions = options;
-    return 3;
+    createMessage = arg;
+    return TextureMessage(textureId: 3);
   }
 
   @override
-  void dispose(int textureId) {
+  void dispose(TextureMessage arg) {
     log.add('dispose');
-    this.textureId = textureId;
+    textureMessage = arg;
   }
 
   @override
@@ -39,56 +39,52 @@ class _ApiLogger implements TestHostVideoPlayerApi {
   }
 
   @override
-  void pause(int textureId) {
+  void pause(TextureMessage arg) {
     log.add('pause');
-    this.textureId = textureId;
+    textureMessage = arg;
   }
 
   @override
-  void play(int textureId) {
+  void play(TextureMessage arg) {
     log.add('play');
-    this.textureId = textureId;
+    textureMessage = arg;
   }
 
   @override
-  void setMixWithOthers(bool enabled) {
+  void setMixWithOthers(MixWithOthersMessage arg) {
     log.add('setMixWithOthers');
-    mixWithOthers = enabled;
+    mixWithOthersMessage = arg;
   }
 
   @override
-  int getPosition(int textureId) {
+  PositionMessage position(TextureMessage arg) {
     log.add('position');
-    this.textureId = textureId;
-    return 234;
+    textureMessage = arg;
+    return PositionMessage(textureId: arg.textureId, position: 234);
   }
 
   @override
-  Future<void> seekTo(int position, int textureId) async {
+  Future<void> seekTo(PositionMessage arg) async {
     log.add('seekTo');
-    this.position = position;
-    this.textureId = textureId;
+    positionMessage = arg;
   }
 
   @override
-  void setLooping(bool loop, int textureId) {
+  void setLooping(LoopingMessage arg) {
     log.add('setLooping');
-    looping = loop;
-    this.textureId = textureId;
+    loopingMessage = arg;
   }
 
   @override
-  void setVolume(double volume, int textureId) {
+  void setVolume(VolumeMessage arg) {
     log.add('setVolume');
-    this.volume = volume;
-    this.textureId = textureId;
+    volumeMessage = arg;
   }
 
   @override
-  void setPlaybackSpeed(double speed, int textureId) {
+  void setPlaybackSpeed(PlaybackSpeedMessage arg) {
     log.add('setPlaybackSpeed');
-    playbackSpeed = speed;
-    this.textureId = textureId;
+    playbackSpeedMessage = arg;
   }
 }
 
@@ -106,7 +102,7 @@ void main() {
 
     setUp(() {
       log = _ApiLogger();
-      TestHostVideoPlayerApi.setUp(log);
+      TestHostVideoPlayerApi.setup(log);
     });
 
     test('init', () async {
@@ -120,7 +116,7 @@ void main() {
     test('dispose', () async {
       await player.dispose(1);
       expect(log.log.last, 'dispose');
-      expect(log.textureId, 1);
+      expect(log.textureMessage?.textureId, 1);
     });
 
     test('create with asset', () async {
@@ -130,8 +126,8 @@ void main() {
         package: 'somePackage',
       ));
       expect(log.log.last, 'create');
-      expect(log.creationOptions?.asset, 'someAsset');
-      expect(log.creationOptions?.packageName, 'somePackage');
+      expect(log.createMessage?.asset, 'someAsset');
+      expect(log.createMessage?.packageName, 'somePackage');
       expect(textureId, 3);
     });
 
@@ -154,11 +150,11 @@ void main() {
         formatHint: VideoFormat.dash,
       ));
       expect(log.log.last, 'create');
-      expect(log.creationOptions?.asset, null);
-      expect(log.creationOptions?.uri, 'someUri');
-      expect(log.creationOptions?.packageName, null);
-      expect(log.creationOptions?.formatHint, 'dash');
-      expect(log.creationOptions?.httpHeaders, <String, String>{});
+      expect(log.createMessage?.asset, null);
+      expect(log.createMessage?.uri, 'someUri');
+      expect(log.createMessage?.packageName, null);
+      expect(log.createMessage?.formatHint, 'dash');
+      expect(log.createMessage?.httpHeaders, <String, String>{});
       expect(textureId, 3);
     });
 
@@ -169,11 +165,11 @@ void main() {
         httpHeaders: <String, String>{'Authorization': 'Bearer token'},
       ));
       expect(log.log.last, 'create');
-      expect(log.creationOptions?.asset, null);
-      expect(log.creationOptions?.uri, 'someUri');
-      expect(log.creationOptions?.packageName, null);
-      expect(log.creationOptions?.formatHint, null);
-      expect(log.creationOptions?.httpHeaders,
+      expect(log.createMessage?.asset, null);
+      expect(log.createMessage?.uri, 'someUri');
+      expect(log.createMessage?.packageName, null);
+      expect(log.createMessage?.formatHint, null);
+      expect(log.createMessage?.httpHeaders,
           <String, String>{'Authorization': 'Bearer token'});
       expect(textureId, 3);
     });
@@ -184,78 +180,79 @@ void main() {
         uri: 'someUri',
       ));
       expect(log.log.last, 'create');
-      expect(log.creationOptions?.uri, 'someUri');
+      expect(log.createMessage?.uri, 'someUri');
       expect(textureId, 3);
     });
 
     test('setLooping', () async {
       await player.setLooping(1, true);
       expect(log.log.last, 'setLooping');
-      expect(log.textureId, 1);
-      expect(log.looping, true);
+      expect(log.loopingMessage?.textureId, 1);
+      expect(log.loopingMessage?.isLooping, true);
     });
 
     test('play', () async {
       await player.play(1);
       expect(log.log.last, 'play');
-      expect(log.textureId, 1);
+      expect(log.textureMessage?.textureId, 1);
     });
 
     test('pause', () async {
       await player.pause(1);
       expect(log.log.last, 'pause');
-      expect(log.textureId, 1);
+      expect(log.textureMessage?.textureId, 1);
     });
 
     test('setMixWithOthers', () async {
       await player.setMixWithOthers(true);
       expect(log.log.last, 'setMixWithOthers');
-      expect(log.mixWithOthers, true);
+      expect(log.mixWithOthersMessage?.mixWithOthers, true);
 
       await player.setMixWithOthers(false);
       expect(log.log.last, 'setMixWithOthers');
-      expect(log.mixWithOthers, false);
+      expect(log.mixWithOthersMessage?.mixWithOthers, false);
     });
 
     test('setVolume', () async {
       await player.setVolume(1, 0.7);
       expect(log.log.last, 'setVolume');
-      expect(log.textureId, 1);
-      expect(log.volume, 0.7);
+      expect(log.volumeMessage?.textureId, 1);
+      expect(log.volumeMessage?.volume, 0.7);
     });
 
     test('setPlaybackSpeed', () async {
       await player.setPlaybackSpeed(1, 1.5);
       expect(log.log.last, 'setPlaybackSpeed');
-      expect(log.textureId, 1);
-      expect(log.playbackSpeed, 1.5);
+      expect(log.playbackSpeedMessage?.textureId, 1);
+      expect(log.playbackSpeedMessage?.speed, 1.5);
     });
 
     test('seekTo', () async {
       await player.seekTo(1, const Duration(milliseconds: 12345));
       expect(log.log.last, 'seekTo');
-      expect(log.textureId, 1);
-      expect(log.position, 12345);
+      expect(log.positionMessage?.textureId, 1);
+      expect(log.positionMessage?.position, 12345);
     });
 
     test('getPosition', () async {
       final Duration position = await player.getPosition(1);
       expect(log.log.last, 'position');
-      expect(log.textureId, 1);
+      expect(log.textureMessage?.textureId, 1);
       expect(position, const Duration(milliseconds: 234));
     });
 
     test('videoEventsFor', () async {
       const String mockChannel = 'flutter.io/videoPlayer/videoEvents123';
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      _ambiguate(TestDefaultBinaryMessengerBinding.instance)!
+          .defaultBinaryMessenger
           .setMockMessageHandler(
         mockChannel,
         (ByteData? message) async {
           final MethodCall methodCall =
               const StandardMethodCodec().decodeMethodCall(message);
           if (methodCall.method == 'listen') {
-            await TestDefaultBinaryMessengerBinding
-                .instance.defaultBinaryMessenger
+            await _ambiguate(TestDefaultBinaryMessengerBinding.instance)!
+                .defaultBinaryMessenger
                 .handlePlatformMessage(
                     mockChannel,
                     const StandardMethodCodec()
@@ -267,8 +264,8 @@ void main() {
                     }),
                     (ByteData? data) {});
 
-            await TestDefaultBinaryMessengerBinding
-                .instance.defaultBinaryMessenger
+            await _ambiguate(TestDefaultBinaryMessengerBinding.instance)!
+                .defaultBinaryMessenger
                 .handlePlatformMessage(
                     mockChannel,
                     const StandardMethodCodec()
@@ -277,8 +274,8 @@ void main() {
                     }),
                     (ByteData? data) {});
 
-            await TestDefaultBinaryMessengerBinding
-                .instance.defaultBinaryMessenger
+            await _ambiguate(TestDefaultBinaryMessengerBinding.instance)!
+                .defaultBinaryMessenger
                 .handlePlatformMessage(
                     mockChannel,
                     const StandardMethodCodec()
@@ -291,8 +288,8 @@ void main() {
                     }),
                     (ByteData? data) {});
 
-            await TestDefaultBinaryMessengerBinding
-                .instance.defaultBinaryMessenger
+            await _ambiguate(TestDefaultBinaryMessengerBinding.instance)!
+                .defaultBinaryMessenger
                 .handlePlatformMessage(
                     mockChannel,
                     const StandardMethodCodec()
@@ -301,8 +298,8 @@ void main() {
                     }),
                     (ByteData? data) {});
 
-            await TestDefaultBinaryMessengerBinding
-                .instance.defaultBinaryMessenger
+            await _ambiguate(TestDefaultBinaryMessengerBinding.instance)!
+                .defaultBinaryMessenger
                 .handlePlatformMessage(
                     mockChannel,
                     const StandardMethodCodec()
@@ -311,8 +308,8 @@ void main() {
                     }),
                     (ByteData? data) {});
 
-            await TestDefaultBinaryMessengerBinding
-                .instance.defaultBinaryMessenger
+            await _ambiguate(TestDefaultBinaryMessengerBinding.instance)!
+                .defaultBinaryMessenger
                 .handlePlatformMessage(
                     mockChannel,
                     const StandardMethodCodec()
@@ -322,8 +319,8 @@ void main() {
                     }),
                     (ByteData? data) {});
 
-            await TestDefaultBinaryMessengerBinding
-                .instance.defaultBinaryMessenger
+            await _ambiguate(TestDefaultBinaryMessengerBinding.instance)!
+                .defaultBinaryMessenger
                 .handlePlatformMessage(
                     mockChannel,
                     const StandardMethodCodec()
@@ -376,3 +373,9 @@ void main() {
     });
   });
 }
+
+/// This allows a value of type T or T? to be treated as a value of type T?.
+///
+/// We use this so that APIs that have become non-nullable can still be used
+/// with `!` and `?` on the stable branch.
+T? _ambiguate<T>(T? value) => value;

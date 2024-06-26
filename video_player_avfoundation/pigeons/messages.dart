@@ -14,8 +14,47 @@ import 'package:pigeon/pigeon.dart';
   ),
   copyrightHeader: 'pigeons/copyright.txt',
 ))
-class CreationOptions {
-  CreationOptions({required this.httpHeaders});
+class TextureMessage {
+  TextureMessage(this.textureId);
+  int textureId;
+}
+
+class LoopingMessage {
+  LoopingMessage(this.textureId, this.isLooping);
+  int textureId;
+  bool isLooping;
+}
+
+class VolumeMessage {
+  VolumeMessage(this.textureId, this.volume);
+  int textureId;
+  double volume;
+}
+
+class PlaybackSpeedMessage {
+  PlaybackSpeedMessage(this.textureId, this.speed);
+  int textureId;
+  double speed;
+}
+
+class PositionMessage {
+  PositionMessage(this.textureId, this.position);
+  int textureId;
+  int position;
+}
+
+class CreateMessage {
+  CreateMessage({required this.httpHeaders});
+  String? asset;
+  String? uri;
+  String? packageName;
+  String? formatHint;
+  Map<String?, String?> httpHeaders;
+}
+
+class UpdateMessage {
+  UpdateMessage(this.textureId, {required this.httpHeaders});
+  int textureId;
   String? asset;
   String? uri;
   String? packageName;
@@ -32,26 +71,27 @@ class MixWithOthersMessage {
 abstract class AVFoundationVideoPlayerApi {
   @ObjCSelector('initialize')
   void initialize();
-  @ObjCSelector('createWithOptions:')
-  // Creates a new player and returns its ID.
-  int create(CreationOptions creationOptions);
-  @ObjCSelector('disposePlayer:')
-  void dispose(int textureId);
-  @ObjCSelector('setLooping:forPlayer:')
-  void setLooping(bool isLooping, int textureId);
-  @ObjCSelector('setVolume:forPlayer:')
-  void setVolume(double volume, int textureId);
-  @ObjCSelector('setPlaybackSpeed:forPlayer:')
-  void setPlaybackSpeed(double speed, int textureId);
-  @ObjCSelector('playPlayer:')
-  void play(int textureId);
-  @ObjCSelector('positionForPlayer:')
-  int getPosition(int textureId);
+  @ObjCSelector('create:')
+  TextureMessage create(CreateMessage msg);
+  @ObjCSelector('update:')
+  void update(UpdateMessage msg);
+  @ObjCSelector('dispose:')
+  void dispose(TextureMessage msg);
+  @ObjCSelector('setLooping:')
+  void setLooping(LoopingMessage msg);
+  @ObjCSelector('setVolume:')
+  void setVolume(VolumeMessage msg);
+  @ObjCSelector('setPlaybackSpeed:')
+  void setPlaybackSpeed(PlaybackSpeedMessage msg);
+  @ObjCSelector('play:')
+  void play(TextureMessage msg);
+  @ObjCSelector('position:')
+  PositionMessage position(TextureMessage msg);
   @async
-  @ObjCSelector('seekTo:forPlayer:')
-  void seekTo(int position, int textureId);
-  @ObjCSelector('pausePlayer:')
-  void pause(int textureId);
+  @ObjCSelector('seekTo:')
+  void seekTo(PositionMessage msg);
+  @ObjCSelector('pause:')
+  void pause(TextureMessage msg);
   @ObjCSelector('setMixWithOthers:')
-  void setMixWithOthers(bool mixWithOthers);
+  void setMixWithOthers(MixWithOthersMessage msg);
 }

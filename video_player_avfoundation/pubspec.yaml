@@ -2,11 +2,11 @@ name: video_player_avfoundation
 description: iOS and macOS implementation of the video_player plugin.
 repository: https://github.com/flutter/packages/tree/main/packages/video_player/video_player_avfoundation
 issue_tracker: https://github.com/flutter/flutter/issues?q=is%3Aissue+is%3Aopen+label%3A%22p%3A+video_player%22
-version: 2.5.7
+version: 2.5.5
 
 environment:
-  sdk: ^3.2.3
-  flutter: ">=3.16.6"
+  sdk: ">=3.2.0 <4.0.0"
+  flutter: ">=3.16.0"
 
 flutter:
   plugin:
@@ -24,12 +24,16 @@ flutter:
 dependencies:
   flutter:
     sdk: flutter
-  video_player_platform_interface: ">=6.1.0 <7.0.0"
+  video_player_platform_interface:
+    git:
+      url: https://github.com/MohamedRisaldarTA/flutter_video_player
+      ref: change_source
+      path: video_player_platform_interface
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  pigeon: ^18.0.0
+  pigeon: ^13.0.0
 
 topics:
   - video

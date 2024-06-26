@@ -27,7 +27,7 @@ class AVFoundationVideoPlayer extends VideoPlayerPlatform {
 
   @override
   Future<void> dispose(int textureId) {
-    return _api.dispose(textureId);
+    return _api.dispose(TextureMessage(textureId: textureId));
   }
 
   @override
@@ -50,7 +50,7 @@ class AVFoundationVideoPlayer extends VideoPlayerPlatform {
       case DataSourceType.contentUri:
         uri = dataSource.uri;
     }
-    final CreationOptions options = CreationOptions(
+    final CreateMessage message = CreateMessage(
       asset: asset,
       packageName: packageName,
       uri: uri,
@@ -58,45 +58,90 @@ class AVFoundationVideoPlayer extends VideoPlayerPlatform {
       formatHint: formatHint,
     );
 
-    return _api.create(options);
+    final TextureMessage response = await _api.create(message);
+    return response.textureId;
+  }
+
+  @override
+  Future<void> update(int textureId, DataSource dataSource) async {
+    String? asset;
+    String? packageName;
+    String? uri;
+    String? formatHint;
+    Map<String, String> httpHeaders = <String, String>{};
+    switch (dataSource.sourceType) {
+      case DataSourceType.asset:
+        asset = dataSource.asset;
+        packageName = dataSource.package;
+      case DataSourceType.network:
+        uri = dataSource.uri;
+        formatHint = _videoFormatStringMap[dataSource.formatHint];
+        httpHeaders = dataSource.httpHeaders;
+      case DataSourceType.file:
+        uri = dataSource.uri;
+      case DataSourceType.contentUri:
+        uri = dataSource.uri;
+    }
+    final UpdateMessage message = UpdateMessage(
+      textureId: textureId,
+      asset: asset,
+      packageName: packageName,
+      uri: uri,
+      httpHeaders: httpHeaders,
+      formatHint: formatHint,
+    );
+    await _api.update(message);
   }
 
   @override
   Future<void> setLooping(int textureId, bool looping) {
-    return _api.setLooping(looping, textureId);
+    return _api.setLooping(LoopingMessage(
+      textureId: textureId,
+      isLooping: looping,
+    ));
   }
 
   @override
   Future<void> play(int textureId) {
-    return _api.play(textureId);
+    return _api.play(TextureMessage(textureId: textureId));
   }
 
   @override
   Future<void> pause(int textureId) {
-    return _api.pause(textureId);
+    return _api.pause(TextureMessage(textureId: textureId));
   }
 
   @override
   Future<void> setVolume(int textureId, double volume) {
-    return _api.setVolume(volume, textureId);
+    return _api.setVolume(VolumeMessage(
+      textureId: textureId,
+      volume: volume,
+    ));
   }
 
   @override
   Future<void> setPlaybackSpeed(int textureId, double speed) {
     assert(speed > 0);
 
-    return _api.setPlaybackSpeed(speed, textureId);
+    return _api.setPlaybackSpeed(PlaybackSpeedMessage(
+      textureId: textureId,
+      speed: speed,
+    ));
   }
 
   @override
   Future<void> seekTo(int textureId, Duration position) {
-    return _api.seekTo(position.inMilliseconds, textureId);
+    return _api.seekTo(PositionMessage(
+      textureId: textureId,
+      position: position.inMilliseconds,
+    ));
   }
 
   @override
   Future<Duration> getPosition(int textureId) async {
-    final int position = await _api.getPosition(textureId);
-    return Duration(milliseconds: position);
+    final PositionMessage response =
+        await _api.position(TextureMessage(textureId: textureId));
+    return Duration(milliseconds: response.position);
   }
 
   @override
@@ -146,7 +191,8 @@ class AVFoundationVideoPlayer extends VideoPlayerPlatform {
 
   @override
   Future<void> setMixWithOthers(bool mixWithOthers) {
-    return _api.setMixWithOthers(mixWithOthers);
+    return _api
+        .setMixWithOthers(MixWithOthersMessage(mixWithOthers: mixWithOthers));
   }
 
   EventChannel _eventChannelFor(int textureId) {

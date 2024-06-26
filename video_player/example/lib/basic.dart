@@ -66,8 +66,8 @@ class _VideoAppState extends State<VideoApp> {
 
   @override
   void dispose() {
-    _controller.dispose();
     super.dispose();
+    _controller.dispose();
   }
 }
 // #enddocregion basic-example

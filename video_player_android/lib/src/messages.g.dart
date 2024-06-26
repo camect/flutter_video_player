@@ -172,8 +172,53 @@ class CreateMessage {
       uri: result[1] as String?,
       packageName: result[2] as String?,
       formatHint: result[3] as String?,
-      httpHeaders:
-          (result[4] as Map<Object?, Object?>?)!.cast<String?, String?>(),
+      httpHeaders: (result[4] as Map<Object?, Object?>?)!.cast<String?, String?>(),
+    );
+  }
+}
+
+class UpdateMessage {
+  UpdateMessage({
+    required this.textureId,
+    this.asset,
+    this.uri,
+    this.packageName,
+    this.formatHint,
+    required this.httpHeaders,
+  });
+
+  int textureId;
+
+  String? asset;
+
+  String? uri;
+
+  String? packageName;
+
+  String? formatHint;
+
+  Map<String?, String?> httpHeaders;
+
+  Object encode() {
+    return <Object?>[
+      textureId,
+      asset,
+      uri,
+      packageName,
+      formatHint,
+      httpHeaders,
+    ];
+  }
+
+  static UpdateMessage decode(Object result) {
+    result as List<Object?>;
+    return UpdateMessage(
+      textureId: result[0]! as int,
+      asset: result[1] as String?,
+      uri: result[2] as String?,
+      packageName: result[3] as String?,
+      formatHint: result[4] as String?,
+      httpHeaders: (result[5] as Map<Object?, Object?>?)!.cast<String?, String?>(),
     );
   }
 }
@@ -221,8 +266,11 @@ class _AndroidVideoPlayerApiCodec extends StandardMessageCodec {
     } else if (value is TextureMessage) {
       buffer.putUint8(133);
       writeValue(buffer, value.encode());
-    } else if (value is VolumeMessage) {
+    } else if (value is UpdateMessage) {
       buffer.putUint8(134);
+      writeValue(buffer, value.encode());
+    } else if (value is VolumeMessage) {
+      buffer.putUint8(135);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -232,19 +280,21 @@ class _AndroidVideoPlayerApiCodec extends StandardMessageCodec {
   @override
   Object? readValueOfType(int type, ReadBuffer buffer) {
     switch (type) {
-      case 128:
+      case 128: 
         return CreateMessage.decode(readValue(buffer)!);
-      case 129:
+      case 129: 
         return LoopingMessage.decode(readValue(buffer)!);
-      case 130:
+      case 130: 
         return MixWithOthersMessage.decode(readValue(buffer)!);
-      case 131:
+      case 131: 
         return PlaybackSpeedMessage.decode(readValue(buffer)!);
-      case 132:
+      case 132: 
         return PositionMessage.decode(readValue(buffer)!);
-      case 133:
+      case 133: 
         return TextureMessage.decode(readValue(buffer)!);
-      case 134:
+      case 134: 
+        return UpdateMessage.decode(readValue(buffer)!);
+      case 135: 
         return VolumeMessage.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -266,7 +316,8 @@ class AndroidVideoPlayerApi {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.AndroidVideoPlayerApi.initialize', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList = await channel.send(null) as List<Object?>?;
+    final List<Object?>? replyList =
+        await channel.send(null) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -307,6 +358,28 @@ class AndroidVideoPlayerApi {
       );
     } else {
       return (replyList[0] as TextureMessage?)!;
+    }
+  }
+
+  Future<void> update(UpdateMessage arg_msg) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.AndroidVideoPlayerApi.update', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
     }
   }
 
