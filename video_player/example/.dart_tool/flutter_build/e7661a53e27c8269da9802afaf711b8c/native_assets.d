@@ -1,0 +1,1 @@
+ /Users/nikhil.va/Documents/GitHub/flutter_video_player/video_player/example/.dart_tool/flutter_build/e7661a53e27c8269da9802afaf711b8c/native_assets.yaml: 

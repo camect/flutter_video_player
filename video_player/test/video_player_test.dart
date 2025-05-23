@@ -83,6 +83,60 @@ class FakeController extends ValueNotifier<VideoPlayerValue>
   Future<void> setClosedCaptionFile(
     Future<ClosedCaptionFile>? closedCaptionFile,
   ) async {}
+  
+  @override
+  set dataSource(String _dataSource)  => null;
+  
+  @override
+  set dataSourceType(DataSourceType _dataSourceType)  => null;
+  
+  @override
+  set formatHint(VideoFormat? _formatHint)  => null;
+  
+  @override
+  set httpHeaders(Map<String, String> _httpHeaders)  => null;
+  
+  @override
+  set package(String? _package)  => null;
+  
+  @override
+  Future<void> update() {
+    // TODO: implement update
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<void> updateAsset(String dataSource, {String? package, Future<ClosedCaptionFile>? closedCaptionFile}) {
+    // TODO: implement updateAsset
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<void> updateFile(File file, {Future<ClosedCaptionFile>? closedCaptionFile, Map<String, String> httpHeaders = const <String, String>{}}) {
+    // TODO: implement updateFile
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<void> updateNetwork(String dataSource, {VideoFormat? formatHint, Future<ClosedCaptionFile>? closedCaptionFile, Map<String, String> httpHeaders = const <String, String>{}}) {
+    // TODO: implement updateNetwork
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<void> updateNetworkUrl(Uri url, {VideoFormat? formatHint, Future<ClosedCaptionFile>? closedCaptionFile, Map<String, String> httpHeaders = const <String, String>{}}) {
+    // TODO: implement updateNetworkUrl
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<void> updateUri(Uri contentUri, {Future<ClosedCaptionFile>? closedCaptionFile}) {
+    // TODO: implement updateUri
+    throw UnimplementedError();
+  }
+  
+  @override
+  set videoPlayerOptions(VideoPlayerOptions? _videoPlayerOptions) => null;
 }
 
 Future<ClosedCaptionFile> _loadClosedCaption() async =>
@@ -248,8 +302,8 @@ void main() {
   group('VideoPlayerController', () {
     group('legacy initialize', () {
       test('network', () async {
-        final VideoPlayerController controller = VideoPlayerController.network(
-          'https://127.0.0.1',
+        final VideoPlayerController controller = VideoPlayerController.networkUrl(
+          Uri.parse('https://127.0.0.1'),
         );
         await controller.initialize();
 
@@ -268,8 +322,8 @@ void main() {
       });
 
       test('network with hint', () async {
-        final VideoPlayerController controller = VideoPlayerController.network(
-          'https://127.0.0.1',
+        final VideoPlayerController controller = VideoPlayerController.networkUrl(
+          Uri.parse('https://127.0.0.1'),
           formatHint: VideoFormat.dash,
         );
         await controller.initialize();
@@ -289,8 +343,8 @@ void main() {
       });
 
       test('network with some headers', () async {
-        final VideoPlayerController controller = VideoPlayerController.network(
-          'https://127.0.0.1',
+        final VideoPlayerController controller = VideoPlayerController.networkUrl(
+          Uri.parse('https://127.0.0.1'),
           httpHeaders: <String, String>{'Authorization': 'Bearer token'},
         );
         await controller.initialize();
@@ -448,8 +502,8 @@ void main() {
       }, skip: kIsWeb /* Web does not support file assets. */);
       test('successful initialize on controller with error clears error',
           () async {
-        final VideoPlayerController controller = VideoPlayerController.network(
-          'https://127.0.0.1',
+        final VideoPlayerController controller = VideoPlayerController.networkUrl(
+          Uri.parse('https://127.0.0.1'),
         );
         fakeVideoPlayerPlatform.forceInitError = true;
         await controller.initialize().catchError((dynamic e) {});
@@ -896,8 +950,8 @@ void main() {
       });
 
       testWidgets('playback status', (WidgetTester tester) async {
-        final VideoPlayerController controller = VideoPlayerController.network(
-          'https://.0.0.1',
+        final VideoPlayerController controller = VideoPlayerController.networkUrl(
+          Uri.parse('https://.0.0.1'),
         );
         await controller.initialize();
         expect(controller.value.isPlaying, isFalse);
