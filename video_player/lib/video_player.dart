@@ -531,50 +531,6 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     _isDisposed = true;
     super.dispose();
   }
-
-  Future<void> updateFile(
-    File file, {
-    Future<ClosedCaptionFile>? closedCaptionFile,
-    Map<String, String> httpHeaders = const <String, String>{},
-  }) async {
-    dataSource = Uri.file(file.absolute.path).toString();
-    this.httpHeaders = httpHeaders;
-    _closedCaptionFileFuture = closedCaptionFile;
-    await update();
-  }
-
-  Future<void> update() async {
-    late DataSource dataSourceDescription;
-    switch (dataSourceType) {
-      case DataSourceType.asset:
-        dataSourceDescription = DataSource(
-          sourceType: DataSourceType.asset,
-          asset: dataSource,
-          package: package,
-        );
-      case DataSourceType.network:
-        dataSourceDescription = DataSource(
-          sourceType: DataSourceType.network,
-          uri: dataSource,
-          formatHint: formatHint,
-          httpHeaders: httpHeaders,
-        );
-      case DataSourceType.file:
-        dataSourceDescription = DataSource(
-          sourceType: DataSourceType.file,
-          uri: dataSource,
-          httpHeaders: httpHeaders,
-        );
-      case DataSourceType.contentUri:
-        dataSourceDescription = DataSource(
-          sourceType: DataSourceType.contentUri,
-          uri: dataSource,
-        );
-    }
-
-    // await _videoPlayerPlatform.update(_textureId, dataSourceDescription);
-  }
-
   /// Starts playing the video.
   ///
   /// If the video is at the end, this method starts playing from the beginning.
