@@ -22,10 +22,21 @@ class CreateMessage {
   Map<String, String> httpHeaders;
 }
 
+class UpdateMessage {
+  UpdateMessage(this.textureId, {required this.httpHeaders});
+  int textureId;
+  String? asset;
+  String? uri;
+  String? packageName;
+  String? formatHint;
+  Map<String?, String?> httpHeaders;
+}
+
 @HostApi(dartHostTestHandler: 'TestHostVideoPlayerApi')
 abstract class AndroidVideoPlayerApi {
   void initialize();
   int create(CreateMessage msg);
+  void update(UpdateMessage msg);
   void dispose(int textureId);
   void setLooping(int textureId, bool looping);
   void setVolume(int textureId, double volume);

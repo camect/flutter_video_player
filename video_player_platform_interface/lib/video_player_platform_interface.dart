@@ -60,6 +60,10 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
     return create(options.dataSource);
   }
 
+  Future<void> update(int textureId, DataSource dataSource) {
+    throw UnimplementedError('update() has not been implemented.');
+  }
+
   /// Returns a Stream of [VideoEventType]s.
   Stream<VideoEvent> videoEventsFor(int playerId) {
     throw UnimplementedError('videoEventsFor() has not been implemented.');
@@ -377,8 +381,7 @@ class DurationRange {
   }
 
   @override
-  String toString() =>
-      '${objectRuntimeType(this, 'DurationRange')}(start: $start, end: $end)';
+  String toString() => '${objectRuntimeType(this, 'DurationRange')}(start: $start, end: $end)';
 
   @override
   bool operator ==(Object other) =>

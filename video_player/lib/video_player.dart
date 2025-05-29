@@ -356,7 +356,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
   /// **Android only**. Will override the platform's generic file format
   /// detection with whatever is set here.
-  final VideoFormat? formatHint;
+  VideoFormat? formatHint;
 
   /// Describes the type of data source this [VideoPlayerController]
   /// is constructed with.
@@ -366,7 +366,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   final VideoPlayerOptions? videoPlayerOptions;
 
   /// Only set for [asset] videos. The package that the asset was loaded from.
-  final String? package;
+  String? package;
 
   Future<ClosedCaptionFile>? _closedCaptionFileFuture;
   ClosedCaptionFile? _closedCaptionFile;
@@ -510,6 +510,90 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         .videoEventsFor(_textureId)
         .listen(eventListener, onError: errorListener);
     return initializingCompleter.future;
+  }
+
+  Future<void> updateUri(Uri contentUri,
+      {Future<ClosedCaptionFile>? closedCaptionFile}) async {
+    _closedCaptionFileFuture = closedCaptionFile;
+    dataSource = contentUri.toString();
+    await update();
+  }
+
+  Future<void> updateAsset(String dataSource,
+      {String? package, Future<ClosedCaptionFile>? closedCaptionFile}) async {
+    this.dataSource = dataSource;
+    this.package = package;
+    _closedCaptionFileFuture = closedCaptionFile;
+    await update();
+  }
+
+  Future<void> updateNetwork(
+    String dataSource, {
+    VideoFormat? formatHint,
+    Future<ClosedCaptionFile>? closedCaptionFile,
+    Map<String, String> httpHeaders = const <String, String>{},
+  }) async {
+    this.dataSource = dataSource;
+    this.formatHint = formatHint;
+    this.httpHeaders = httpHeaders;
+    _closedCaptionFileFuture = closedCaptionFile;
+    await update();
+  }
+
+  Future<void> updateNetworkUrl(
+    Uri url, {
+    VideoFormat? formatHint,
+    Future<ClosedCaptionFile>? closedCaptionFile,
+    Map<String, String> httpHeaders = const <String, String>{},
+  }) async {
+    this.dataSource = url.toString();
+    this.formatHint = formatHint;
+    this.httpHeaders = httpHeaders;
+    _closedCaptionFileFuture = closedCaptionFile;
+    await update();
+  }
+
+  Future<void> updateFile(
+    File file, {
+    Future<ClosedCaptionFile>? closedCaptionFile,
+    Map<String, String> httpHeaders = const <String, String>{},
+  }) async {
+    this.dataSource = Uri.file(file.absolute.path).toString();
+    this.httpHeaders = httpHeaders;
+    _closedCaptionFileFuture = closedCaptionFile;
+    await update();
+  }
+
+  Future<void> update() async {
+    late DataSource dataSourceDescription;
+    switch (dataSourceType) {
+      case DataSourceType.asset:
+        dataSourceDescription = DataSource(
+          sourceType: DataSourceType.asset,
+          asset: dataSource,
+          package: package,
+        );
+      case DataSourceType.network:
+        dataSourceDescription = DataSource(
+          sourceType: DataSourceType.network,
+          uri: dataSource,
+          formatHint: formatHint,
+          httpHeaders: httpHeaders,
+        );
+      case DataSourceType.file:
+        dataSourceDescription = DataSource(
+          sourceType: DataSourceType.file,
+          uri: dataSource,
+          httpHeaders: httpHeaders,
+        );
+      case DataSourceType.contentUri:
+        dataSourceDescription = DataSource(
+          sourceType: DataSourceType.contentUri,
+          uri: dataSource,
+        );
+    }
+
+    await _videoPlayerPlatform.update(_textureId, dataSourceDescription);
   }
 
   @override

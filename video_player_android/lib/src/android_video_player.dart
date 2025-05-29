@@ -63,6 +63,37 @@ class AndroidVideoPlayer extends VideoPlayerPlatform {
   }
 
   @override
+  Future<void> update(int textureId, DataSource dataSource) async {
+    String? asset;
+    String? packageName;
+    String? uri;
+    String? formatHint;
+    Map<String, String> httpHeaders = <String, String>{};
+    switch (dataSource.sourceType) {
+      case DataSourceType.asset:
+        asset = dataSource.asset;
+        packageName = dataSource.package;
+      case DataSourceType.network:
+        uri = dataSource.uri;
+        formatHint = _videoFormatStringMap[dataSource.formatHint];
+        httpHeaders = dataSource.httpHeaders;
+      case DataSourceType.file:
+        uri = dataSource.uri;
+      case DataSourceType.contentUri:
+        uri = dataSource.uri;
+    }
+    final UpdateMessage message = UpdateMessage(
+      textureId: textureId,
+      asset: asset,
+      packageName: packageName,
+      uri: uri,
+      httpHeaders: httpHeaders,
+      formatHint: formatHint,
+    );
+    await _api.update(message);
+  }
+
+  @override
   Future<void> setLooping(int textureId, bool looping) {
     return _api.setLooping(textureId, looping);
   }
@@ -102,9 +133,7 @@ class AndroidVideoPlayer extends VideoPlayerPlatform {
 
   @override
   Stream<VideoEvent> videoEventsFor(int textureId) {
-    return _eventChannelFor(textureId)
-        .receiveBroadcastStream()
-        .map((dynamic event) {
+    return _eventChannelFor(textureId).receiveBroadcastStream().map((dynamic event) {
       final Map<dynamic, dynamic> map = event as Map<dynamic, dynamic>;
       switch (map['event']) {
         case 'initialized':
@@ -155,8 +184,7 @@ class AndroidVideoPlayer extends VideoPlayerPlatform {
     return EventChannel('flutter.io/videoPlayer/videoEvents$textureId');
   }
 
-  static const Map<VideoFormat, String> _videoFormatStringMap =
-      <VideoFormat, String>{
+  static const Map<VideoFormat, String> _videoFormatStringMap = <VideoFormat, String>{
     VideoFormat.ss: 'ss',
     VideoFormat.hls: 'hls',
     VideoFormat.dash: 'dash',
