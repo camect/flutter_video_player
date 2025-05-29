@@ -80,12 +80,6 @@
       "languageVersion": "3.2"
     },
     {
-      "name": "js",
-      "rootUri": "file:///Users/nikhil.va/.pub-cache/hosted/pub.dev/js-0.6.7",
-      "packageUri": "lib/",
-      "languageVersion": "2.19"
-    },
-    {
       "name": "leak_tracker",
       "rootUri": "file:///Users/nikhil.va/.pub-cache/hosted/pub.dev/leak_tracker-10.0.5",
       "packageUri": "lib/",
@@ -201,21 +195,27 @@
     },
     {
       "name": "video_player_platform_interface",
-      "rootUri": "../../../video_player_platform_interface",
+      "rootUri": "file:///Users/nikhil.va/.pub-cache/hosted/pub.dev/video_player_platform_interface-6.3.0",
       "packageUri": "lib/",
-      "languageVersion": "3.0"
+      "languageVersion": "3.4"
     },
     {
       "name": "video_player_web",
       "rootUri": "../../",
       "packageUri": "lib/",
-      "languageVersion": "3.1"
+      "languageVersion": "3.5"
     },
     {
       "name": "vm_service",
       "rootUri": "file:///Users/nikhil.va/.pub-cache/hosted/pub.dev/vm_service-14.2.5",
       "packageUri": "lib/",
       "languageVersion": "3.3"
+    },
+    {
+      "name": "web",
+      "rootUri": "file:///Users/nikhil.va/.pub-cache/hosted/pub.dev/web-1.1.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
     },
     {
       "name": "webdriver",
@@ -227,10 +227,10 @@
       "name": "video_player_for_web_integration_tests",
       "rootUri": "../",
       "packageUri": "lib/",
-      "languageVersion": "3.0"
+      "languageVersion": "3.5"
     }
   ],
-  "generated": "2025-05-23T07:11:45.101583Z",
+  "generated": "2025-05-29T04:58:25.976002Z",
   "generator": "pub",
   "generatorVersion": "3.5.4",
   "flutterRoot": "file:///Users/nikhil.va/Documents/flutter",

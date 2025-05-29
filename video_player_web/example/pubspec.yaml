@@ -2,17 +2,16 @@ name: video_player_for_web_integration_tests
 publish_to: none
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
-  flutter: ">=3.10.0"
+  sdk: ^3.5.4
+  flutter: ">=3.24.5"
 
 dependencies:
   flutter:
     sdk: flutter
-  js: ^0.6.0
-  video_player_platform_interface: 
-    path: ../../video_player_platform_interface
+  video_player_platform_interface: ^6.3.0
   video_player_web:
     path: ../
+  web: ^1.0.0
 
 dev_dependencies:
   flutter_test:

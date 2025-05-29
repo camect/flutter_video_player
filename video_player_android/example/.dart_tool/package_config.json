@@ -413,13 +413,13 @@
       "name": "video_player_android",
       "rootUri": "../../",
       "packageUri": "lib/",
-      "languageVersion": "3.0"
+      "languageVersion": "3.5"
     },
     {
       "name": "video_player_platform_interface",
-      "rootUri": "../../../video_player_platform_interface",
+      "rootUri": "file:///Users/nikhil.va/.pub-cache/hosted/pub.dev/video_player_platform_interface-6.3.0",
       "packageUri": "lib/",
-      "languageVersion": "3.0"
+      "languageVersion": "3.4"
     },
     {
       "name": "vm_service",
@@ -479,10 +479,10 @@
       "name": "video_player_example",
       "rootUri": "../",
       "packageUri": "lib/",
-      "languageVersion": "3.0"
+      "languageVersion": "3.5"
     }
   ],
-  "generated": "2025-05-23T07:15:05.924795Z",
+  "generated": "2025-05-29T04:58:23.727494Z",
   "generator": "pub",
   "generatorVersion": "3.5.4",
   "flutterRoot": "file:///Users/nikhil.va/Documents/flutter",

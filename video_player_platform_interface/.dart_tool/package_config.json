@@ -155,10 +155,10 @@
       "name": "video_player_platform_interface",
       "rootUri": "../",
       "packageUri": "lib/",
-      "languageVersion": "3.0"
+      "languageVersion": "3.5"
     }
   ],
-  "generated": "2025-05-23T07:09:48.967025Z",
+  "generated": "2025-05-29T04:58:20.382030Z",
   "generator": "pub",
   "generatorVersion": "3.5.4",
   "flutterRoot": "file:///Users/nikhil.va/Documents/flutter",

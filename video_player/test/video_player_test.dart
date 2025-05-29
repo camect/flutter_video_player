@@ -4,8 +4,6 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:math' as math;
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -13,6 +11,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:video_player/video_player.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
+
+// TODO(FirentisTFW): Remove the ignore and rename parameters when adding support for platform views.
+// ignore_for_file: avoid_renaming_method_parameters
 
 const String _localhost = 'https://127.0.0.1';
 final Uri _localhostUri = Uri.parse(_localhost);
@@ -85,19 +86,14 @@ class FakeController extends ValueNotifier<VideoPlayerValue>
   ) async {}
   
   @override
-  set dataSource(String _dataSource)  => null;
+  set dataSource(String _dataSource) {
+    // TODO: implement dataSource
+  }
   
   @override
-  set dataSourceType(DataSourceType _dataSourceType)  => null;
-  
-  @override
-  set formatHint(VideoFormat? _formatHint)  => null;
-  
-  @override
-  set httpHeaders(Map<String, String> _httpHeaders)  => null;
-  
-  @override
-  set package(String? _package)  => null;
+  set httpHeaders(Map<String, String> _httpHeaders) {
+    // TODO: implement httpHeaders
+  }
   
   @override
   Future<void> update() {
@@ -106,37 +102,10 @@ class FakeController extends ValueNotifier<VideoPlayerValue>
   }
   
   @override
-  Future<void> updateAsset(String dataSource, {String? package, Future<ClosedCaptionFile>? closedCaptionFile}) {
-    // TODO: implement updateAsset
-    throw UnimplementedError();
-  }
-  
-  @override
   Future<void> updateFile(File file, {Future<ClosedCaptionFile>? closedCaptionFile, Map<String, String> httpHeaders = const <String, String>{}}) {
     // TODO: implement updateFile
     throw UnimplementedError();
   }
-  
-  @override
-  Future<void> updateNetwork(String dataSource, {VideoFormat? formatHint, Future<ClosedCaptionFile>? closedCaptionFile, Map<String, String> httpHeaders = const <String, String>{}}) {
-    // TODO: implement updateNetwork
-    throw UnimplementedError();
-  }
-  
-  @override
-  Future<void> updateNetworkUrl(Uri url, {VideoFormat? formatHint, Future<ClosedCaptionFile>? closedCaptionFile, Map<String, String> httpHeaders = const <String, String>{}}) {
-    // TODO: implement updateNetworkUrl
-    throw UnimplementedError();
-  }
-  
-  @override
-  Future<void> updateUri(Uri contentUri, {Future<ClosedCaptionFile>? closedCaptionFile}) {
-    // TODO: implement updateUri
-    throw UnimplementedError();
-  }
-  
-  @override
-  set videoPlayerOptions(VideoPlayerOptions? _videoPlayerOptions) => null;
 }
 
 Future<ClosedCaptionFile> _loadClosedCaption() async =>
@@ -175,16 +144,17 @@ void main() {
     required bool shouldPlayInBackground,
   }) {
     expect(controller.value.isPlaying, true);
-    _ambiguate(WidgetsBinding.instance)!
+    WidgetsBinding.instance
         .handleAppLifecycleStateChanged(AppLifecycleState.paused);
     expect(controller.value.isPlaying, shouldPlayInBackground);
-    _ambiguate(WidgetsBinding.instance)!
+    WidgetsBinding.instance
         .handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     expect(controller.value.isPlaying, true);
   }
 
   testWidgets('update texture', (WidgetTester tester) async {
     final FakeController controller = FakeController();
+    addTearDown(controller.dispose);
     await tester.pumpWidget(VideoPlayer(controller));
     expect(find.byType(Texture), findsNothing);
 
@@ -200,6 +170,7 @@ void main() {
 
   testWidgets('update controller', (WidgetTester tester) async {
     final FakeController controller1 = FakeController();
+    addTearDown(controller1.dispose);
     controller1.textureId = 101;
     await tester.pumpWidget(VideoPlayer(controller1));
     expect(
@@ -209,6 +180,7 @@ void main() {
         findsOneWidget);
 
     final FakeController controller2 = FakeController();
+    addTearDown(controller2.dispose);
     controller2.textureId = 102;
     await tester.pumpWidget(VideoPlayer(controller2));
     expect(
@@ -223,29 +195,23 @@ void main() {
     final FakeController controller = FakeController.value(
         const VideoPlayerValue(
             duration: Duration.zero, rotationCorrection: 180));
+    addTearDown(controller.dispose);
     controller.textureId = 1;
     await tester.pumpWidget(VideoPlayer(controller));
-    final Transform actualRotationCorrection =
-        find.byType(Transform).evaluate().single.widget as Transform;
-    final Float64List actualRotationCorrectionStorage =
-        actualRotationCorrection.transform.storage;
-    final Float64List expectedMatrixStorage =
-        Matrix4.rotationZ(math.pi).storage;
-    expect(actualRotationCorrectionStorage.length,
-        equals(expectedMatrixStorage.length));
-    for (int i = 0; i < actualRotationCorrectionStorage.length; i++) {
-      expect(actualRotationCorrectionStorage[i],
-          moreOrLessEquals(expectedMatrixStorage[i]));
-    }
+    final RotatedBox actualRotationCorrection =
+        find.byType(RotatedBox).evaluate().single.widget as RotatedBox;
+    final int actualQuarterTurns = actualRotationCorrection.quarterTurns;
+    expect(actualQuarterTurns, equals(2));
   });
 
-  testWidgets('no transform when rotationCorrection is zero',
+  testWidgets('no RotatedBox when rotationCorrection is zero',
       (WidgetTester tester) async {
     final FakeController controller =
         FakeController.value(const VideoPlayerValue(duration: Duration.zero));
+    addTearDown(controller.dispose);
     controller.textureId = 1;
     await tester.pumpWidget(VideoPlayer(controller));
-    expect(find.byType(Transform), findsNothing);
+    expect(find.byType(RotatedBox), findsNothing);
   });
 
   group('ClosedCaption widget', () {
@@ -302,8 +268,8 @@ void main() {
   group('VideoPlayerController', () {
     group('legacy initialize', () {
       test('network', () async {
-        final VideoPlayerController controller = VideoPlayerController.networkUrl(
-          Uri.parse('https://127.0.0.1'),
+        final VideoPlayerController controller = VideoPlayerController.network(
+          'https://127.0.0.1',
         );
         await controller.initialize();
 
@@ -322,8 +288,8 @@ void main() {
       });
 
       test('network with hint', () async {
-        final VideoPlayerController controller = VideoPlayerController.networkUrl(
-          Uri.parse('https://127.0.0.1'),
+        final VideoPlayerController controller = VideoPlayerController.network(
+          'https://127.0.0.1',
           formatHint: VideoFormat.dash,
         );
         await controller.initialize();
@@ -343,8 +309,8 @@ void main() {
       });
 
       test('network with some headers', () async {
-        final VideoPlayerController controller = VideoPlayerController.networkUrl(
-          Uri.parse('https://127.0.0.1'),
+        final VideoPlayerController controller = VideoPlayerController.network(
+          'https://127.0.0.1',
           httpHeaders: <String, String>{'Authorization': 'Bearer token'},
         );
         await controller.initialize();
@@ -369,6 +335,7 @@ void main() {
             VideoPlayerController.networkUrl(
           Uri.parse('https://127.0.0.1'),
         );
+        addTearDown(controller.dispose);
         await controller.initialize();
         await controller.play();
         verifyPlayStateRespondsToLifecycle(controller,
@@ -388,6 +355,7 @@ void main() {
       test('network url', () async {
         final VideoPlayerController controller =
             VideoPlayerController.networkUrl(Uri.parse('https://127.0.0.1'));
+        addTearDown(controller.dispose);
         await controller.initialize();
 
         expect(
@@ -410,6 +378,7 @@ void main() {
           Uri.parse('https://127.0.0.1'),
           formatHint: VideoFormat.dash,
         );
+        addTearDown(controller.dispose);
         await controller.initialize();
 
         expect(
@@ -432,6 +401,7 @@ void main() {
           Uri.parse('https://127.0.0.1'),
           httpHeaders: <String, String>{'Authorization': 'Bearer token'},
         );
+        addTearDown(controller.dispose);
         await controller.initialize();
 
         expect(
@@ -455,6 +425,7 @@ void main() {
 
         final VideoPlayerController controller =
             VideoPlayerController.networkUrl(invalidUrl);
+        addTearDown(controller.dispose);
 
         late Object error;
         fakeVideoPlayerPlatform.forceInitError = true;
@@ -502,8 +473,8 @@ void main() {
       }, skip: kIsWeb /* Web does not support file assets. */);
       test('successful initialize on controller with error clears error',
           () async {
-        final VideoPlayerController controller = VideoPlayerController.networkUrl(
-          Uri.parse('https://127.0.0.1'),
+        final VideoPlayerController controller = VideoPlayerController.network(
+          'https://127.0.0.1',
         );
         fakeVideoPlayerPlatform.forceInitError = true;
         await controller.initialize().catchError((dynamic e) {});
@@ -518,6 +489,7 @@ void main() {
           () async {
         final VideoPlayerController controller =
             VideoPlayerController.networkUrl(_localhostUri);
+        addTearDown(controller.dispose);
 
         fakeVideoPlayerPlatform.forceInitError = true;
         await controller.initialize().catchError((dynamic e) {});
@@ -539,6 +511,7 @@ void main() {
     test('dispose', () async {
       final VideoPlayerController controller =
           VideoPlayerController.networkUrl(_localhostUri);
+      addTearDown(controller.dispose);
 
       expect(
           controller.textureId, VideoPlayerController.kUninitializedTextureId);
@@ -554,6 +527,7 @@ void main() {
     test('calling dispose() on disposed controller does not throw', () async {
       final VideoPlayerController controller =
           VideoPlayerController.networkUrl(_localhostUri);
+      addTearDown(controller.dispose);
 
       await controller.initialize();
       await controller.dispose();
@@ -564,6 +538,7 @@ void main() {
     test('play', () async {
       final VideoPlayerController controller =
           VideoPlayerController.networkUrl(Uri.parse('https://127.0.0.1'));
+      addTearDown(controller.dispose);
 
       await controller.initialize();
       expect(controller.value.isPlaying, isFalse);
@@ -583,6 +558,7 @@ void main() {
     test('play before initialized does not call platform', () async {
       final VideoPlayerController controller =
           VideoPlayerController.networkUrl(_localhostUri);
+      addTearDown(controller.dispose);
 
       expect(controller.value.isInitialized, isFalse);
 
@@ -594,6 +570,7 @@ void main() {
     test('play restarts from beginning if video is at end', () async {
       final VideoPlayerController controller =
           VideoPlayerController.networkUrl(_localhostUri);
+      addTearDown(controller.dispose);
 
       await controller.initialize();
       const Duration nonzeroDuration = Duration(milliseconds: 100);
@@ -611,6 +588,7 @@ void main() {
     test('setLooping', () async {
       final VideoPlayerController controller =
           VideoPlayerController.networkUrl(_localhostUri);
+      addTearDown(controller.dispose);
 
       await controller.initialize();
       expect(controller.value.isLooping, isFalse);
@@ -622,6 +600,7 @@ void main() {
     test('pause', () async {
       final VideoPlayerController controller =
           VideoPlayerController.networkUrl(_localhostUri);
+      addTearDown(controller.dispose);
 
       await controller.initialize();
       await controller.play();
@@ -637,6 +616,7 @@ void main() {
       test('works', () async {
         final VideoPlayerController controller =
             VideoPlayerController.networkUrl(_localhostUri);
+        addTearDown(controller.dispose);
 
         await controller.initialize();
         expect(await controller.position, Duration.zero);
@@ -649,6 +629,7 @@ void main() {
       test('before initialized does not call platform', () async {
         final VideoPlayerController controller =
             VideoPlayerController.networkUrl(_localhostUri);
+        addTearDown(controller.dispose);
 
         expect(controller.value.isInitialized, isFalse);
 
@@ -660,6 +641,7 @@ void main() {
       test('clamps values that are too high or low', () async {
         final VideoPlayerController controller =
             VideoPlayerController.networkUrl(_localhostUri);
+        addTearDown(controller.dispose);
 
         await controller.initialize();
         expect(await controller.position, Duration.zero);
@@ -676,6 +658,7 @@ void main() {
       test('works', () async {
         final VideoPlayerController controller =
             VideoPlayerController.networkUrl(_localhostUri);
+        addTearDown(controller.dispose);
 
         await controller.initialize();
         expect(controller.value.volume, 1.0);
@@ -689,6 +672,7 @@ void main() {
       test('clamps values that are too high or low', () async {
         final VideoPlayerController controller =
             VideoPlayerController.networkUrl(_localhostUri);
+        addTearDown(controller.dispose);
 
         await controller.initialize();
         expect(controller.value.volume, 1.0);
@@ -705,6 +689,7 @@ void main() {
       test('works', () async {
         final VideoPlayerController controller =
             VideoPlayerController.networkUrl(_localhostUri);
+        addTearDown(controller.dispose);
 
         await controller.initialize();
         expect(controller.value.playbackSpeed, 1.0);
@@ -718,6 +703,7 @@ void main() {
       test('rejects negative values', () async {
         final VideoPlayerController controller =
             VideoPlayerController.networkUrl(_localhostUri);
+        addTearDown(controller.dispose);
 
         await controller.initialize();
         expect(controller.value.playbackSpeed, 1.0);
@@ -752,6 +738,7 @@ void main() {
         expect(controller.value.isPlaying, isTrue);
 
         await controller.pause();
+        await tester.runAsync(controller.dispose);
       });
 
       testWidgets('does not restart when dragging to end',
@@ -777,16 +764,57 @@ void main() {
 
         expect(controller.value.position, controller.value.duration);
         expect(controller.value.isPlaying, isFalse);
+        await tester.runAsync(controller.dispose);
       });
     });
 
     group('caption', () {
+      test('works when position updates', () async {
+        final VideoPlayerController controller =
+            VideoPlayerController.networkUrl(
+          _localhostUri,
+          closedCaptionFile: _loadClosedCaption(),
+        );
+
+        await controller.initialize();
+        await controller.play();
+
+        // Optionally record caption changes for later verification.
+        final Map<int, String> recordedCaptions = <int, String>{};
+
+        controller.addListener(() {
+          // Record the caption for the current position (in milliseconds).
+          final int ms = controller.value.position.inMilliseconds;
+          recordedCaptions[ms] = controller.value.caption.text;
+        });
+
+        const Duration updateInterval = Duration(milliseconds: 100);
+        const int totalDurationMs = 350;
+
+        // Simulate continuous playback by incrementing in 50ms steps.
+        for (int ms = 0; ms <= totalDurationMs; ms += 50) {
+          fakeVideoPlayerPlatform._positions[controller.textureId] =
+              Duration(milliseconds: ms);
+          await Future<void>.delayed(updateInterval);
+        }
+
+        // Now, given your closed caption file and the 100ms update interval,
+        // you expect:
+        //   • at 100ms: caption should be 'one'
+        //   • at 250ms: no caption (i.e. '')
+        //   • at 300ms: caption should be 'two'
+        expect(recordedCaptions[100], 'one');
+        expect(recordedCaptions[250], '');
+        expect(recordedCaptions[300], 'two');
+      });
+
       test('works when seeking', () async {
         final VideoPlayerController controller =
             VideoPlayerController.networkUrl(
           _localhostUri,
           closedCaptionFile: _loadClosedCaption(),
         );
+        addTearDown(controller.dispose);
 
         await controller.initialize();
         expect(controller.value.position, Duration.zero);
@@ -820,6 +848,7 @@ void main() {
           _localhostUri,
           closedCaptionFile: _loadClosedCaption(),
         );
+        addTearDown(controller.dispose);
 
         await controller.initialize();
         controller.setCaptionOffset(const Duration(milliseconds: 100));
@@ -857,6 +886,7 @@ void main() {
           _localhostUri,
           closedCaptionFile: _loadClosedCaption(),
         );
+        addTearDown(controller.dispose);
 
         await controller.initialize();
         controller.setCaptionOffset(const Duration(milliseconds: -100));
@@ -896,6 +926,7 @@ void main() {
             VideoPlayerController.networkUrl(
           _localhostUri,
         );
+        addTearDown(controller.dispose);
 
         await controller.initialize();
         expect(controller.closedCaptionFile, null);
@@ -913,6 +944,7 @@ void main() {
           _localhostUri,
           closedCaptionFile: _loadClosedCaption(),
         );
+        addTearDown(controller.dispose);
 
         await controller.initialize();
         expect(
@@ -947,11 +979,12 @@ void main() {
 
         expect(controller.value.isPlaying, isFalse);
         expect(controller.value.position, nonzeroDuration);
+        await tester.runAsync(controller.dispose);
       });
 
       testWidgets('playback status', (WidgetTester tester) async {
-        final VideoPlayerController controller = VideoPlayerController.networkUrl(
-          Uri.parse('https://.0.0.1'),
+        final VideoPlayerController controller = VideoPlayerController.network(
+          'https://.0.0.1',
         );
         await controller.initialize();
         expect(controller.value.isPlaying, isFalse);
@@ -971,6 +1004,7 @@ void main() {
         ));
         await tester.pumpAndSettle();
         expect(controller.value.isPlaying, isFalse);
+        await tester.runAsync(controller.dispose);
       });
 
       testWidgets('buffering status', (WidgetTester tester) async {
@@ -1007,8 +1041,44 @@ void main() {
             .add(VideoEvent(eventType: VideoEventType.bufferingEnd));
         await tester.pumpAndSettle();
         expect(controller.value.isBuffering, isFalse);
+        await tester.runAsync(controller.dispose);
       });
     });
+  });
+
+  test('updates position', () async {
+    final VideoPlayerController controller = VideoPlayerController.networkUrl(
+      _localhostUri,
+      videoPlayerOptions: VideoPlayerOptions(),
+    );
+
+    await controller.initialize();
+
+    const Duration updatesInterval = Duration(milliseconds: 100);
+
+    final List<Duration> positions = <Duration>[];
+    final Completer<void> intervalUpdateCompleter = Completer<void>();
+
+    // Listen for position updates
+    controller.addListener(() {
+      positions.add(controller.value.position);
+      if (positions.length >= 3 && !intervalUpdateCompleter.isCompleted) {
+        intervalUpdateCompleter.complete();
+      }
+    });
+    await controller.play();
+    for (int i = 0; i < 3; i++) {
+      await Future<void>.delayed(updatesInterval);
+      fakeVideoPlayerPlatform._positions[controller.textureId] =
+          Duration(milliseconds: i * updatesInterval.inMilliseconds);
+    }
+
+    // Wait for at least 3 position updates
+    await intervalUpdateCompleter.future;
+
+    // Verify that the intervals between updates are approximately correct
+    expect(positions[1] - positions[0], greaterThanOrEqualTo(updatesInterval));
+    expect(positions[2] - positions[1], greaterThanOrEqualTo(updatesInterval));
   });
 
   group('DurationRange', () {
@@ -1209,6 +1279,7 @@ void main() {
         _localhostUri,
         videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
       );
+      addTearDown(controller.dispose);
 
       await controller.initialize();
       expect(controller.videoPlayerOptions!.mixWithOthers, true);
@@ -1221,6 +1292,7 @@ void main() {
           allowBackgroundPlayback: true,
         ),
       );
+      addTearDown(controller.dispose);
 
       await controller.initialize();
       await controller.play();
@@ -1235,6 +1307,7 @@ void main() {
         _localhostUri,
         videoPlayerOptions: VideoPlayerOptions(),
       );
+      addTearDown(controller.dispose);
 
       await controller.initialize();
       await controller.play();
@@ -1265,6 +1338,7 @@ void main() {
       _localhostUri,
       videoPlayerOptions: VideoPlayerOptions(),
     );
+    addTearDown(controller.dispose);
 
     await controller.initialize();
 
@@ -1292,6 +1366,7 @@ void main() {
       _localhostUri,
       videoPlayerOptions: VideoPlayerOptions(),
     );
+    addTearDown(controller.dispose);
 
     await controller.initialize();
 
@@ -1329,6 +1404,7 @@ void main() {
       _localhostUri,
       videoPlayerOptions: VideoPlayerOptions(),
     );
+    addTearDown(controller.dispose);
 
     await controller.initialize();
 
@@ -1365,6 +1441,8 @@ class FakeVideoPlayerPlatform extends VideoPlayerPlatform {
   bool forceInitError = false;
   int nextTextureId = 0;
   final Map<int, Duration> _positions = <int, Duration>{};
+  final Map<int, VideoPlayerWebOptions> webOptions =
+      <int, VideoPlayerWebOptions>{};
 
   @override
   Future<int?> create(DataSource dataSource) async {
@@ -1446,10 +1524,14 @@ class FakeVideoPlayerPlatform extends VideoPlayerPlatform {
   Widget buildView(int textureId) {
     return Texture(textureId: textureId);
   }
-}
 
-/// This allows a value of type T or T? to be treated as a value of type T?.
-///
-/// We use this so that APIs that have become non-nullable can still be used
-/// with `!` and `?` on the stable branch.
-T? _ambiguate<T>(T? value) => value;
+  @override
+  Future<void> setWebOptions(
+      int textureId, VideoPlayerWebOptions options) async {
+    if (!kIsWeb) {
+      throw UnimplementedError('setWebOptions() is only available in the web.');
+    }
+    calls.add('setWebOptions');
+    webOptions[textureId] = options;
+  }
+}

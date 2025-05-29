@@ -81,7 +81,7 @@
     },
     {
       "name": "built_value",
-      "rootUri": "file:///Users/nikhil.va/.pub-cache/hosted/pub.dev/built_value-8.9.5",
+      "rootUri": "file:///Users/nikhil.va/.pub-cache/hosted/pub.dev/built_value-8.10.1",
       "packageUri": "lib/",
       "languageVersion": "3.0"
     },
@@ -533,31 +533,31 @@
       "name": "video_player",
       "rootUri": "../../",
       "packageUri": "lib/",
-      "languageVersion": "3.1"
+      "languageVersion": "3.5"
     },
     {
       "name": "video_player_android",
-      "rootUri": "file:///Users/nikhil.va/.pub-cache/git/flutter_video_player-0b47f1d728808fa8b91f7dac26af4f80fd554ba5/video_player_android",
+      "rootUri": "file:///Users/nikhil.va/.pub-cache/hosted/pub.dev/video_player_android-2.7.16",
       "packageUri": "lib/",
-      "languageVersion": "3.0"
+      "languageVersion": "3.5"
     },
     {
       "name": "video_player_avfoundation",
-      "rootUri": "file:///Users/nikhil.va/.pub-cache/git/flutter_video_player-0b47f1d728808fa8b91f7dac26af4f80fd554ba5/video_player_avfoundation",
+      "rootUri": "file:///Users/nikhil.va/.pub-cache/hosted/pub.dev/video_player_avfoundation-2.7.1",
       "packageUri": "lib/",
-      "languageVersion": "3.2"
+      "languageVersion": "3.4"
     },
     {
       "name": "video_player_platform_interface",
-      "rootUri": "file:///Users/nikhil.va/.pub-cache/git/flutter_video_player-0b47f1d728808fa8b91f7dac26af4f80fd554ba5/video_player_platform_interface",
+      "rootUri": "file:///Users/nikhil.va/.pub-cache/hosted/pub.dev/video_player_platform_interface-6.3.0",
       "packageUri": "lib/",
-      "languageVersion": "3.0"
+      "languageVersion": "3.4"
     },
     {
       "name": "video_player_web",
-      "rootUri": "file:///Users/nikhil.va/.pub-cache/git/flutter_video_player-0b47f1d728808fa8b91f7dac26af4f80fd554ba5/video_player_web",
+      "rootUri": "file:///Users/nikhil.va/.pub-cache/hosted/pub.dev/video_player_web-2.3.5",
       "packageUri": "lib/",
-      "languageVersion": "3.1"
+      "languageVersion": "3.4"
     },
     {
       "name": "vm_service",
@@ -617,10 +617,10 @@
       "name": "video_player_example",
       "rootUri": "../",
       "packageUri": "lib/",
-      "languageVersion": "3.0"
+      "languageVersion": "3.5"
     }
   ],
-  "generated": "2025-05-23T06:48:38.377810Z",
+  "generated": "2025-05-29T04:58:22.465789Z",
   "generator": "pub",
   "generatorVersion": "3.5.4",
   "flutterRoot": "file:///Users/nikhil.va/Documents/flutter",
