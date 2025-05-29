@@ -336,10 +336,9 @@ packages:
   video_player_platform_interface:
     dependency: "direct main"
     description:
-      name: video_player_platform_interface
-      sha256: df534476c341ab2c6a835078066fc681b8265048addd853a1e3c78740316a844
-      url: "https://pub.dev"
-    source: hosted
+      path: "../video_player_platform_interface"
+      relative: true
+    source: path
     version: "6.3.0"
   vm_service:
     dependency: transitive

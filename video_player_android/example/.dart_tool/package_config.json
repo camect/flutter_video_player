@@ -417,9 +417,9 @@
     },
     {
       "name": "video_player_platform_interface",
-      "rootUri": "file:///Users/nikhil.va/.pub-cache/hosted/pub.dev/video_player_platform_interface-6.3.0",
+      "rootUri": "../../../video_player_platform_interface",
       "packageUri": "lib/",
-      "languageVersion": "3.4"
+      "languageVersion": "3.5"
     },
     {
       "name": "vm_service",
@@ -482,7 +482,7 @@
       "languageVersion": "3.5"
     }
   ],
-  "generated": "2025-05-29T10:29:55.802591Z",
+  "generated": "2025-05-29T10:42:15.722781Z",
   "generator": "pub",
   "generatorVersion": "3.5.4",
   "flutterRoot": "file:///Users/nikhil.va/Documents/flutter",

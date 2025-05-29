@@ -82,10 +82,6 @@ vector_math
 2.14
 file:///Users/nikhil.va/.pub-cache/hosted/pub.dev/vector_math-2.1.4/
 file:///Users/nikhil.va/.pub-cache/hosted/pub.dev/vector_math-2.1.4/lib/
-video_player_platform_interface
-3.4
-file:///Users/nikhil.va/.pub-cache/hosted/pub.dev/video_player_platform_interface-6.3.0/
-file:///Users/nikhil.va/.pub-cache/hosted/pub.dev/video_player_platform_interface-6.3.0/lib/
 vm_service
 3.3
 file:///Users/nikhil.va/.pub-cache/hosted/pub.dev/vm_service-14.2.5/
@@ -94,6 +90,10 @@ web
 3.4
 file:///Users/nikhil.va/.pub-cache/hosted/pub.dev/web-1.1.1/
 file:///Users/nikhil.va/.pub-cache/hosted/pub.dev/web-1.1.1/lib/
+video_player_platform_interface
+3.5
+file:///Users/nikhil.va/Documents/GitHub/flutter_video_player/video_player_platform_interface/
+file:///Users/nikhil.va/Documents/GitHub/flutter_video_player/video_player_platform_interface/lib/
 video_player_web
 3.5
 file:///Users/nikhil.va/Documents/GitHub/flutter_video_player/video_player_web/
