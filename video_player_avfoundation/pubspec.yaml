@@ -1,3 +1,5 @@
+publish_to: none
+
 name: video_player_avfoundation
 description: iOS and macOS implementation of the video_player plugin.
 repository: https://github.com/flutter/packages/tree/main/packages/video_player/video_player_avfoundation
