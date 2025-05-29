@@ -90,10 +90,6 @@ vector_math
 2.14
 file:///Users/nikhil.va/.pub-cache/hosted/pub.dev/vector_math-2.1.4/
 file:///Users/nikhil.va/.pub-cache/hosted/pub.dev/vector_math-2.1.4/lib/
-video_player_android
-3.5
-file:///Users/nikhil.va/.pub-cache/hosted/pub.dev/video_player_android-2.7.16/
-file:///Users/nikhil.va/.pub-cache/hosted/pub.dev/video_player_android-2.7.16/lib/
 video_player_avfoundation
 3.4
 file:///Users/nikhil.va/.pub-cache/hosted/pub.dev/video_player_avfoundation-2.7.1/
@@ -118,6 +114,10 @@ video_player
 3.5
 file:///Users/nikhil.va/Documents/GitHub/flutter_video_player/video_player/
 file:///Users/nikhil.va/Documents/GitHub/flutter_video_player/video_player/lib/
+video_player_android
+3.5
+file:///Users/nikhil.va/Documents/GitHub/flutter_video_player/video_player_android/
+file:///Users/nikhil.va/Documents/GitHub/flutter_video_player/video_player_android/lib/
 sky_engine
 3.2
 file:///Users/nikhil.va/Documents/flutter/bin/cache/pkg/sky_engine/

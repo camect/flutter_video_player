@@ -208,10 +208,9 @@ packages:
   video_player_android:
     dependency: "direct main"
     description:
-      name: video_player_android
-      sha256: "391e092ba4abe2f93b3e625bd6b6a6ec7d7414279462c1c0ee42b5ab8d0a0898"
-      url: "https://pub.dev"
-    source: hosted
+      path: "../video_player_android"
+      relative: true
+    source: path
     version: "2.7.16"
   video_player_avfoundation:
     dependency: "direct main"

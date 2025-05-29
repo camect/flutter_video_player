@@ -165,7 +165,7 @@
     },
     {
       "name": "video_player_android",
-      "rootUri": "file:///Users/nikhil.va/.pub-cache/hosted/pub.dev/video_player_android-2.7.16",
+      "rootUri": "../../video_player_android",
       "packageUri": "lib/",
       "languageVersion": "3.5"
     },
@@ -206,7 +206,7 @@
       "languageVersion": "3.5"
     }
   ],
-  "generated": "2025-05-29T04:58:18.110121Z",
+  "generated": "2025-05-29T05:57:28.713583Z",
   "generator": "pub",
   "generatorVersion": "3.5.4",
   "flutterRoot": "file:///Users/nikhil.va/Documents/flutter",

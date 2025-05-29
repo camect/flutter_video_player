@@ -106,6 +106,40 @@ class FakeController extends ValueNotifier<VideoPlayerValue>
     // TODO: implement updateFile
     throw UnimplementedError();
   }
+  
+  @override
+  set formatHint(VideoFormat? _formatHint) {
+    // TODO: implement formatHint
+  }
+  
+  @override
+  set package(String? _package) {
+    // TODO: implement package
+  }
+  
+  @override
+  Future<void> updateAsset(String dataSource, {String? package, Future<ClosedCaptionFile>? closedCaptionFile}) {
+    // TODO: implement updateAsset
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<void> updateNetwork(String dataSource, {VideoFormat? formatHint, Future<ClosedCaptionFile>? closedCaptionFile, Map<String, String> httpHeaders = const <String, String>{}}) {
+    // TODO: implement updateNetwork
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<void> updateNetworkUrl(Uri url, {VideoFormat? formatHint, Future<ClosedCaptionFile>? closedCaptionFile, Map<String, String> httpHeaders = const <String, String>{}}) {
+    // TODO: implement updateNetworkUrl
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<void> updateUri(Uri contentUri, {Future<ClosedCaptionFile>? closedCaptionFile}) {
+    // TODO: implement updateUri
+    throw UnimplementedError();
+  }
 }
 
 Future<ClosedCaptionFile> _loadClosedCaption() async =>
