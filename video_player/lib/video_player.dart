@@ -569,7 +569,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         );
     }
 
-    await _videoPlayerPlatform.update(_textureId, dataSourceDescription);
+    // await _videoPlayerPlatform.update(_textureId, dataSourceDescription);
   }
 
   @override
