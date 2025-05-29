@@ -59,6 +59,9 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
   Future<int?> createWithOptions(VideoCreationOptions options) {
     return create(options.dataSource);
   }
+    Future<void> update(int textureId, DataSource dataSource) {
+    throw UnimplementedError('update() has not been implemented.');
+  }
 
   /// Returns a Stream of [VideoEventType]s.
   Stream<VideoEvent> videoEventsFor(int playerId) {

@@ -489,8 +489,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     return initializingCompleter.future;
   }
 
-  Future<void> updateUri(Uri contentUri,
-      {Future<ClosedCaptionFile>? closedCaptionFile}) async {
+  Future<void> updateUri(Uri contentUri, {Future<ClosedCaptionFile>? closedCaptionFile}) async {
     _closedCaptionFileFuture = closedCaptionFile;
     dataSource = contentUri.toString();
     await update();
