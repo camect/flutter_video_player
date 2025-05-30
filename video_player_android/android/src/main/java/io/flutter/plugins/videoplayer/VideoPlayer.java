@@ -10,7 +10,7 @@ import static androidx.media3.common.Player.REPEAT_MODE_OFF;
 import java.util.Map;
 
 import android.content.Context;
-import javax.sql.DataSource;
+import androidx.media3.datasource.DataSource;
 
 import android.net.Uri;
 import androidx.annotation.NonNull;
@@ -26,8 +26,20 @@ import androidx.media3.exoplayer.source.MediaSource;
 import androidx.media3.datasource.DefaultDataSource;
 import androidx.media3.datasource.DefaultHttpDataSource;
 import io.flutter.view.TextureRegistry;
+import androidx.media3.exoplayer.source.ProgressiveMediaSource;
+import androidx.media3.exoplayer.hls.HlsMediaSource;
+import androidx.media3.exoplayer.dash.DashMediaSource;
+import androidx.media3.exoplayer.dash.DefaultDashChunkSource;
+import androidx.media3.common.util.Util;
+import androidx.media3.exoplayer.smoothstreaming.SsMediaSource;
+import androidx.media3.exoplayer.smoothstreaming.DefaultSsChunkSource;
+
 
 final class VideoPlayer implements TextureRegistry.SurfaceProducer.Callback {
+    private static final String FORMAT_SS = "ss";
+  private static final String FORMAT_DASH = "dash";
+  private static final String FORMAT_HLS = "hls";
+  private static final String FORMAT_OTHER = "other";
   private static final String USER_AGENT = "User-Agent";
   @NonNull
   private final ExoPlayerProvider exoPlayerProvider;
@@ -270,5 +282,26 @@ DefaultDataSource.Factory dataSourceFactory = new DefaultDataSource.Factory(cont
     // TODO(matanlurey): Remove when embedder no longer calls-back once released.
     // https://github.com/flutter/flutter/issues/156434.
     surfaceProducer.setCallback(null);
+  }
+
+  private MediaSource buildMediaSource(Uri uri, Context context) {
+    DefaultDataSource.Factory dataSourceFactory = new DefaultDataSource.Factory(context);
+    MediaItem mediaItem = MediaItem.fromUri(uri);
+
+    @C.ContentType int contentType = Util.inferContentType(uri);
+    switch (contentType) {
+      case C.CONTENT_TYPE_DASH:
+        return new DashMediaSource.Factory(
+            new DefaultDashChunkSource.Factory(dataSourceFactory),
+            dataSourceFactory)
+          .createMediaSource(mediaItem);
+      case C.CONTENT_TYPE_HLS:
+        return new HlsMediaSource.Factory(dataSourceFactory)
+          .createMediaSource(mediaItem);
+      case C.CONTENT_TYPE_OTHER:
+      default:
+        return new ProgressiveMediaSource.Factory(dataSourceFactory)
+          .createMediaSource(mediaItem);
+    }
   }
 }
