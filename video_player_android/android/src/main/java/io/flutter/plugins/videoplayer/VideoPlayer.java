@@ -7,7 +7,12 @@ package io.flutter.plugins.videoplayer;
 import static androidx.media3.common.Player.REPEAT_MODE_ALL;
 import static androidx.media3.common.Player.REPEAT_MODE_OFF;
 
+import java.util.Map;
+
 import android.content.Context;
+import javax.sql.DataSource;
+
+import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
@@ -17,25 +22,36 @@ import androidx.media3.common.C;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.PlaybackParameters;
 import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.source.MediaSource;
+import androidx.media3.datasource.DefaultDataSource;
+import androidx.media3.datasource.DefaultHttpDataSource;
 import io.flutter.view.TextureRegistry;
 
 final class VideoPlayer implements TextureRegistry.SurfaceProducer.Callback {
-  @NonNull private final ExoPlayerProvider exoPlayerProvider;
-  @NonNull private final MediaItem mediaItem;
-  @NonNull private final TextureRegistry.SurfaceProducer surfaceProducer;
-  @NonNull private final VideoPlayerCallbacks videoPlayerEvents;
-  @NonNull private final VideoPlayerOptions options;
-  @NonNull private ExoPlayer exoPlayer;
-  @Nullable private ExoPlayerState savedStateDuring;
+  private static final String USER_AGENT = "User-Agent";
+  @NonNull
+  private final ExoPlayerProvider exoPlayerProvider;
+  @NonNull
+  private final MediaItem mediaItem;
+  @NonNull
+  private final TextureRegistry.SurfaceProducer surfaceProducer;
+  @NonNull
+  private final VideoPlayerCallbacks videoPlayerEvents;
+  @NonNull
+  private final VideoPlayerOptions options;
+  @NonNull
+  private ExoPlayer exoPlayer;
+  @Nullable
+  private ExoPlayerState savedStateDuring;
 
   /**
    * Creates a video player.
    *
-   * @param context application context.
-   * @param events event callbacks.
+   * @param context         application context.
+   * @param events          event callbacks.
    * @param surfaceProducer produces a texture to render to.
-   * @param asset asset to play.
-   * @param options options for playback.
+   * @param asset           asset to play.
+   * @param options         options for playback.
    * @return a video player instance.
    */
   @NonNull
@@ -47,9 +63,8 @@ final class VideoPlayer implements TextureRegistry.SurfaceProducer.Callback {
       @NonNull VideoPlayerOptions options) {
     return new VideoPlayer(
         () -> {
-          ExoPlayer.Builder builder =
-              new ExoPlayer.Builder(context)
-                  .setMediaSourceFactory(asset.getMediaSourceFactory(context));
+          ExoPlayer.Builder builder = new ExoPlayer.Builder(context)
+              .setMediaSourceFactory(asset.getMediaSourceFactory(context));
           return builder.build();
         },
         events,
@@ -58,7 +73,10 @@ final class VideoPlayer implements TextureRegistry.SurfaceProducer.Callback {
         options);
   }
 
-  /** A closure-compatible signature since {@link java.util.function.Supplier} is API level 24. */
+  /**
+   * A closure-compatible signature since {@link java.util.function.Supplier} is
+   * API level 24.
+   */
   interface ExoPlayerProvider {
     /**
      * Returns a new {@link ExoPlayer}.
@@ -83,10 +101,74 @@ final class VideoPlayer implements TextureRegistry.SurfaceProducer.Callback {
     this.exoPlayer = createVideoPlayer();
     surfaceProducer.setCallback(this);
   }
+@VisibleForTesting
+public DefaultHttpDataSource.Factory buildHttpDataSourceFactory(@NonNull Map<String, String> httpHeaders) {
+    final boolean httpHeadersNotEmpty = !httpHeaders.isEmpty();
+    final String userAgent =
+            httpHeadersNotEmpty && httpHeaders.containsKey(USER_AGENT)
+                    ? httpHeaders.get(USER_AGENT)
+                    : "ExoPlayer";
+
+    DefaultHttpDataSource.Factory httpDataSourceFactory = new DefaultHttpDataSource.Factory()
+            .setUserAgent(userAgent)
+            .setAllowCrossProtocolRedirects(true);
+
+    if (httpHeadersNotEmpty) {
+        httpDataSourceFactory.setDefaultRequestProperties(httpHeaders);
+    }
+
+    return httpDataSourceFactory;
+}
+
+  private MediaSource buildMediaSource(
+      Uri uri, DataSource.Factory mediaDataSourceFactory, String formatHint) {
+    int type;
+    if (formatHint == null) {
+      type = Util.inferContentType(uri);
+    } else {
+      switch (formatHint) {
+        case FORMAT_SS:
+          type = C.CONTENT_TYPE_SS;
+          break;
+        case FORMAT_DASH:
+          type = C.CONTENT_TYPE_DASH;
+          break;
+        case FORMAT_HLS:
+          type = C.CONTENT_TYPE_HLS;
+          break;
+        case FORMAT_OTHER:
+          type = C.CONTENT_TYPE_OTHER;
+          break;
+        default:
+          type = -1;
+          break;
+      }
+    }
+    switch (type) {
+      case C.CONTENT_TYPE_SS:
+        return new SsMediaSource.Factory(
+                new DefaultSsChunkSource.Factory(mediaDataSourceFactory), mediaDataSourceFactory)
+            .createMediaSource(MediaItem.fromUri(uri));
+      case C.CONTENT_TYPE_DASH:
+        return new DashMediaSource.Factory(
+                new DefaultDashChunkSource.Factory(mediaDataSourceFactory), mediaDataSourceFactory)
+            .createMediaSource(MediaItem.fromUri(uri));
+      case C.CONTENT_TYPE_HLS:
+        return new HlsMediaSource.Factory(mediaDataSourceFactory)
+            .createMediaSource(MediaItem.fromUri(uri));
+      case C.CONTENT_TYPE_OTHER:
+        return new ProgressiveMediaSource.Factory(mediaDataSourceFactory)
+            .createMediaSource(MediaItem.fromUri(uri));
+      default:
+        {
+          throw new IllegalStateException("Unsupported type: " + type);
+        }
+    }
+  }
 
   @RestrictTo(RestrictTo.Scope.LIBRARY)
   // TODO(matanlurey): https://github.com/flutter/flutter/issues/155131.
-  @SuppressWarnings({"deprecation", "removal"})
+  @SuppressWarnings({ "deprecation", "removal" })
   public void onSurfaceCreated() {
     if (savedStateDuring != null) {
       exoPlayer = createVideoPlayer();
@@ -97,7 +179,8 @@ final class VideoPlayer implements TextureRegistry.SurfaceProducer.Callback {
 
   @RestrictTo(RestrictTo.Scope.LIBRARY)
   public void onSurfaceDestroyed() {
-    // Intentionally do not call pause/stop here, because the surface has already been released
+    // Intentionally do not call pause/stop here, because the surface has already
+    // been released
     // at this point (see https://github.com/flutter/flutter/issues/156451).
     savedStateDuring = ExoPlayerState.save(exoPlayer);
     exoPlayer.release();
@@ -126,18 +209,18 @@ final class VideoPlayer implements TextureRegistry.SurfaceProducer.Callback {
         new AudioAttributes.Builder().setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(),
         !isMixMode);
   }
+
   void update(
-          Context context,
-          String dataSource,
-          String formatHint,
-          @NonNull Map<String, String> httpHeaders) {
+      Context context,
+      String dataSource,
+      String formatHint,
+      @NonNull Map<String, String> httpHeaders) {
 
     Uri uri = Uri.parse(dataSource);
 
     buildHttpDataSourceFactory(httpHeaders);
-    DataSource.Factory dataSourceFactory =
-            new DefaultDataSource.Factory(context, httpDataSourceFactory);
-
+DefaultHttpDataSource.Factory httpFactory = buildHttpDataSourceFactory(httpHeaders);
+DefaultDataSource.Factory dataSourceFactory = new DefaultDataSource.Factory(context, httpFactory);
     MediaSource mediaSource = buildMediaSource(uri, dataSourceFactory, formatHint);
 
     exoPlayer.stop();
@@ -145,6 +228,7 @@ final class VideoPlayer implements TextureRegistry.SurfaceProducer.Callback {
     exoPlayer.prepare();
     exoPlayer.setPlayWhenReady(true);
   }
+
   void play() {
     exoPlayer.play();
   }
@@ -163,7 +247,8 @@ final class VideoPlayer implements TextureRegistry.SurfaceProducer.Callback {
   }
 
   void setPlaybackSpeed(double value) {
-    // We do not need to consider pitch and skipSilence for now as we do not handle them and
+    // We do not need to consider pitch and skipSilence for now as we do not handle
+    // them and
     // therefore never diverge from the default values.
     final PlaybackParameters playbackParameters = new PlaybackParameters(((float) value));
 

@@ -15,7 +15,14 @@ import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugins.videoplayer.Messages.AndroidVideoPlayerApi;
 import io.flutter.plugins.videoplayer.Messages.CreateMessage;
 import io.flutter.view.TextureRegistry;
+import java.util.HashMap;
+import java.util.Map;
 
+// Android Net/Uri
+import android.net.Uri;
+
+// ExoPlayer DataSource and Factory
+import androidx.media3.exoplayer.ExoPlayer;
 /** Android platform implementation of the VideoPlayerPlugin. */
 public class VideoPlayerPlugin implements FlutterPlugin, AndroidVideoPlayerApi {
   private static final String TAG = "VideoPlayerPlugin";
@@ -133,6 +140,28 @@ public class VideoPlayerPlugin implements FlutterPlugin, AndroidVideoPlayerApi {
     }
 
     return player;
+  }
+    public void update(@NonNull Messages.UpdateMessage arg) {
+    VideoPlayer player = videoPlayers.get(arg.getTextureId());
+    if (arg.getAsset() != null) {
+      String assetLookupKey;
+      if (arg.getPackageName() != null) {
+        assetLookupKey =
+                flutterState.keyForAssetAndPackageName.get(arg.getAsset(), arg.getPackageName());
+      } else {
+        assetLookupKey = flutterState.keyForAsset.get(arg.getAsset());
+      }
+      player.update(flutterState.applicationContext,
+              "asset:///" + assetLookupKey,
+              null,
+              new HashMap<>());
+    } else {
+      Map<String, String> httpHeaders = arg.getHttpHeaders();
+      player.update(flutterState.applicationContext,
+              arg.getUri(),
+              arg.getFormatHint(),
+              httpHeaders);
+    }
   }
 
   @Override
