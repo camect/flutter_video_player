@@ -46,6 +46,15 @@ class CreationOptions {
   Map<String, String> httpHeaders;
   PlatformVideoViewType viewType;
 }
+class UpdateMessage {
+  UpdateMessage(this.textureId, {required this.httpHeaders});
+  int textureId;
+  String? asset;
+  String? uri;
+  String? packageName;
+  String? formatHint;
+  Map<String?, String?> httpHeaders;
+}
 
 @HostApi(dartHostTestHandler: 'TestHostVideoPlayerApi')
 abstract class AVFoundationVideoPlayerApi {
@@ -54,6 +63,8 @@ abstract class AVFoundationVideoPlayerApi {
   @ObjCSelector('createWithOptions:')
   // Creates a new player and returns its ID.
   int create(CreationOptions creationOptions);
+  @ObjCSelector('update:')
+  void update(UpdateMessage msg);
   @ObjCSelector('disposePlayer:')
   void dispose(int playerId);
   @ObjCSelector('setLooping:forPlayer:')

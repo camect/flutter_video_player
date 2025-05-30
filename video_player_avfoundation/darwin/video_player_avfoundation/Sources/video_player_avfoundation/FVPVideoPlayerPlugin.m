@@ -45,6 +45,7 @@
 @property(readonly, strong, nonatomic) NSObject<FlutterPluginRegistrar> *registrar;
 @property(nonatomic, strong) id<FVPDisplayLinkFactory> displayLinkFactory;
 @property(nonatomic, strong) id<FVPAVFactory> avFactory;
+@property(nonatomic, strong) NSMutableDictionary<NSNumber *, FVPVideoPlayer *> *playersByTextureId;
 // TODO(stuartmorgan): Decouple identifiers for platform views and texture views.
 @property(nonatomic, assign) int64_t nextNonTexturePlayerIdentifier;
 @end
@@ -305,6 +306,38 @@ static void upgradeAudioSessionCategory(AVAudioSessionCategory requestedCategory
 - (void)pausePlayer:(NSInteger)playerIdentifier error:(FlutterError **)error {
   FVPVideoPlayer *player = self.playersByIdentifier[@(playerIdentifier)];
   [player pause];
+}
+- (void)update:(FVPUpdateMessage *)input error:(FlutterError **)error {
+    FVPFrameUpdater *frameUpdater = [[FVPFrameUpdater alloc] initWithRegistry:_registry];
+    
+    FVPVideoPlayer *player = self.playersByTextureId[@(input.textureId)];;
+    if (input.asset) {
+        NSString *assetPath;
+        if (input.packageName) {
+            assetPath = [_registrar lookupKeyForAsset:input.asset fromPackage:input.packageName];
+        } else {
+            assetPath = [_registrar lookupKeyForAsset:input.asset];
+        }
+        @try {
+            [player updateWithAsset:assetPath
+                       frameUpdater:frameUpdater
+             
+                          avFactory:_avFactory
+                          registrar:self.registrar];
+            [self onPlayerSetup:player frameUpdater:frameUpdater];
+        } @catch (NSException *exception) {
+            *error = [FlutterError errorWithCode:@"video_player" message:exception.reason details:nil];
+        }
+    } else if (input.uri) {
+        [player updateWithURL:[NSURL URLWithString:input.uri]
+                 frameUpdater:frameUpdater
+                  httpHeaders:input.httpHeaders
+                    avFactory:_avFactory
+                    registrar:self.registrar];
+        [self onPlayerSetup:player frameUpdater:frameUpdater];
+    } else {
+        *error = [FlutterError errorWithCode:@"video_player" message:@"not implemented" details:nil];
+    }
 }
 
 - (void)setMixWithOthers:(BOOL)mixWithOthers

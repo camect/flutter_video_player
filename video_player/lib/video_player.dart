@@ -512,8 +512,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     return initializingCompleter.future;
   }
 
-  Future<void> updateUri(Uri contentUri,
-      {Future<ClosedCaptionFile>? closedCaptionFile}) async {
+  Future<void> updateUri(Uri contentUri, {Future<ClosedCaptionFile>? closedCaptionFile}) async {
     _closedCaptionFileFuture = closedCaptionFile;
     dataSource = contentUri.toString();
     await update();
@@ -615,6 +614,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     _isDisposed = true;
     super.dispose();
   }
+
   /// Starts playing the video.
   ///
   /// If the video is at the end, this method starts playing from the beginning.

@@ -19,8 +19,7 @@ class AVFoundationVideoPlayer extends VideoPlayerPlatform {
   /// A map that associates player ID with a view state.
   /// This is used to determine which view type to use when building a view.
   @visibleForTesting
-  final Map<int, VideoPlayerViewState> playerViewStates =
-      <int, VideoPlayerViewState>{};
+  final Map<int, VideoPlayerViewState> playerViewStates = <int, VideoPlayerViewState>{};
 
   /// Registers this class as the default instance of [VideoPlayerPlatform].
   static void registerWith() {
@@ -88,12 +87,42 @@ class AVFoundationVideoPlayer extends VideoPlayerPlatform {
     final int playerId = await _api.create(pigeonCreationOptions);
     playerViewStates[playerId] = switch (viewType) {
       // playerId is also the textureId when using texture view.
-      VideoViewType.textureView =>
-        VideoPlayerTextureViewState(textureId: playerId),
+      VideoViewType.textureView => VideoPlayerTextureViewState(textureId: playerId),
       VideoViewType.platformView => const VideoPlayerPlatformViewState(),
     };
 
     return playerId;
+  }
+
+  @override
+  Future<void> update(int textureId, DataSource dataSource) async {
+    String? asset;
+    String? packageName;
+    String? uri;
+    String? formatHint;
+    Map<String, String> httpHeaders = <String, String>{};
+    switch (dataSource.sourceType) {
+      case DataSourceType.asset:
+        asset = dataSource.asset;
+        packageName = dataSource.package;
+      case DataSourceType.network:
+        uri = dataSource.uri;
+        formatHint = _videoFormatStringMap[dataSource.formatHint];
+        httpHeaders = dataSource.httpHeaders;
+      case DataSourceType.file:
+        uri = dataSource.uri;
+      case DataSourceType.contentUri:
+        uri = dataSource.uri;
+    }
+    final UpdateMessage message = UpdateMessage(
+      textureId: textureId,
+      asset: asset,
+      packageName: packageName,
+      uri: uri,
+      httpHeaders: httpHeaders,
+      formatHint: formatHint,
+    );
+    await _api.update(message);
   }
 
   @override
@@ -136,9 +165,7 @@ class AVFoundationVideoPlayer extends VideoPlayerPlatform {
 
   @override
   Stream<VideoEvent> videoEventsFor(int playerId) {
-    return _eventChannelFor(playerId)
-        .receiveBroadcastStream()
-        .map((dynamic event) {
+    return _eventChannelFor(playerId).receiveBroadcastStream().map((dynamic event) {
       final Map<dynamic, dynamic> map = event as Map<dynamic, dynamic>;
       switch (map['event']) {
         case 'initialized':
@@ -192,8 +219,7 @@ class AVFoundationVideoPlayer extends VideoPlayerPlatform {
     final VideoPlayerViewState? viewState = playerViewStates[playerId];
 
     return switch (viewState) {
-      VideoPlayerTextureViewState(:final int textureId) =>
-        Texture(textureId: textureId),
+      VideoPlayerTextureViewState(:final int textureId) => Texture(textureId: textureId),
       VideoPlayerPlatformViewState() => _buildPlatformView(playerId),
       null => throw Exception(
           'Could not find corresponding view type for playerId: $playerId',
@@ -219,8 +245,7 @@ class AVFoundationVideoPlayer extends VideoPlayerPlatform {
     return EventChannel('flutter.io/videoPlayer/videoEvents$playerId');
   }
 
-  static const Map<VideoFormat, String> _videoFormatStringMap =
-      <VideoFormat, String>{
+  static const Map<VideoFormat, String> _videoFormatStringMap = <VideoFormat, String>{
     VideoFormat.ss: 'ss',
     VideoFormat.hls: 'hls',
     VideoFormat.dash: 'dash',
