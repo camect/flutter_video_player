@@ -308,37 +308,86 @@ static void upgradeAudioSessionCategory(AVAudioSessionCategory requestedCategory
   [player pause];
 }
 - (void)update:(FVPUpdateMessage *)input error:(FlutterError **)error {
-    FVPFrameUpdater *frameUpdater = [[FVPFrameUpdater alloc] initWithRegistry:_registry];
-    
-    FVPVideoPlayer *player = self.playersByTextureId[@(input.textureId)];;
-    if (input.asset) {
-        NSString *assetPath;
-        if (input.packageName) {
-            assetPath = [_registrar lookupKeyForAsset:input.asset fromPackage:input.packageName];
-        } else {
-            assetPath = [_registrar lookupKeyForAsset:input.asset];
-        }
-        @try {
-            [player updateWithAsset:assetPath
-                       frameUpdater:frameUpdater
-             
-                          avFactory:_avFactory
-                          registrar:self.registrar];
-            [self onPlayerSetup:player frameUpdater:frameUpdater];
-        } @catch (NSException *exception) {
-            *error = [FlutterError errorWithCode:@"video_player" message:exception.reason details:nil];
-        }
-    } else if (input.uri) {
-        [player updateWithURL:[NSURL URLWithString:input.uri]
-                 frameUpdater:frameUpdater
-                  httpHeaders:input.httpHeaders
-                    avFactory:_avFactory
-                    registrar:self.registrar];
-        [self onPlayerSetup:player frameUpdater:frameUpdater];
+  NSNumber *playerKey = @(input.textureId);
+  FVPVideoPlayer *player = self.playersByIdentifier[playerKey];
+
+  if (![player isKindOfClass:[FVPTextureBasedVideoPlayer class]]) {
+    *error = [FlutterError errorWithCode:@"video_player"
+                                 message:@"Update is only supported for texture-based players"
+                                 details:nil];
+    return;
+  }
+
+  FVPTextureBasedVideoPlayer *texturePlayer = (FVPTextureBasedVideoPlayer *)player;
+
+  // Unregister the old texture
+  int64_t oldTextureId = texturePlayer.textureIdentifier;
+  [self.registry unregisterTexture:oldTextureId];
+
+  // Prepare a new frame updater
+  FVPFrameUpdater *frameUpdater = [[FVPFrameUpdater alloc] initWithRegistry:_registry];
+  FVPDisplayLink *displayLink = [self.displayLinkFactory displayLinkWithRegistrar:_registrar
+                                                                          callback:^{
+                                                                            [frameUpdater displayLinkFired];
+                                                                          }];
+
+  // Dispose the old player instance
+  [texturePlayer pause];
+  [texturePlayer disposeSansEventChannel];
+
+  @try {
+    if (input.asset != nil) {
+      NSString *assetPath;
+      if (input.packageName != nil) {
+        assetPath = [FlutterDartProject lookupKeyForAsset:input.asset fromPackage:input.packageName];
+      } else {
+        assetPath = [FlutterDartProject lookupKeyForAsset:input.asset];
+      }
+
+      [texturePlayer updateWithAsset:assetPath
+                        frameUpdater:frameUpdater
+                           avFactory:_avFactory
+                           registrar:_registrar];
+    } else if (input.uri != nil) {
+      NSURL *url = [NSURL URLWithString:input.uri];
+      [texturePlayer updateWithURL:url
+                      frameUpdater:frameUpdater
+                       httpHeaders:input.httpHeaders
+                         avFactory:_avFactory
+                         registrar:_registrar];
     } else {
-        *error = [FlutterError errorWithCode:@"video_player" message:@"not implemented" details:nil];
+      *error = [FlutterError errorWithCode:@"video_player"
+                                   message:@"Either 'asset' or 'uri' must be provided for update"
+                                   details:nil];
+      return;
     }
+
+    // Register new texture
+    int64_t newTextureId = [self.registry registerTexture:texturePlayer];
+    texturePlayer.textureIdentifier = newTextureId;
+
+    // Replace reference in map
+    [self.playersByIdentifier removeObjectForKey:playerKey];
+    self.playersByIdentifier[@(newTextureId)] = texturePlayer;
+
+    // Resume frame updates
+    [texturePlayer expectFrame];
+
+    // Keep using the existing event channel
+    [texturePlayer.eventChannel setStreamHandler:texturePlayer];
+
+  } @catch (NSException *exception) {
+    *error = [FlutterError errorWithCode:@"video_player"
+                                 message:exception.reason
+                                 details:nil];
+  }
 }
+
+// - (void)dealloc {
+//   if (!_disposed) {
+//     [self removeKeyValueObservers];
+//   }
+// }
 
 - (void)setMixWithOthers:(BOOL)mixWithOthers
                    error:(FlutterError *_Nullable __autoreleasing *)error {

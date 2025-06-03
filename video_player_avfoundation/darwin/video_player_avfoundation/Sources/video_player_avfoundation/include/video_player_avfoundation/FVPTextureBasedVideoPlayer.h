@@ -40,6 +40,22 @@ NS_ASSUME_NONNULL_BEGIN
 /// Tells the player to run its frame updater until it receives a frame, regardless of the
 /// play/pause state.
 - (void)expectFrame;
+- (void)updateWithPlayerItem:(AVPlayerItem *)item
+                frameUpdater:(FVPFrameUpdater *)frameUpdater
+                   avFactory:(id<FVPAVFactory>)avFactory
+                   registrar:(NSObject<FlutterPluginRegistrar> *)registrar;
+
+- (void)updateWithAsset:(NSString *)asset
+           frameUpdater:(FVPFrameUpdater *)frameUpdater
+              avFactory:(id<FVPAVFactory>)avFactory
+              registrar:(NSObject<FlutterPluginRegistrar> *)registrar;
+
+- (void)updateWithURL:(NSURL *)url
+         frameUpdater:(FVPFrameUpdater *)frameUpdater
+          httpHeaders:(NSDictionary<NSString *, NSString *> *)headers
+            avFactory:(id<FVPAVFactory>)avFactory
+            registrar:(NSObject<FlutterPluginRegistrar> *)registrar;
+@property(nonatomic, assign) int64_t textureIdentifier;
 @end
 
 NS_ASSUME_NONNULL_END
