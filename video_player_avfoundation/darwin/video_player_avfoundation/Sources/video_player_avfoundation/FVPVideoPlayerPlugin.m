@@ -307,14 +307,40 @@ static void upgradeAudioSessionCategory(AVAudioSessionCategory requestedCategory
   FVPVideoPlayer *player = self.playersByIdentifier[@(playerIdentifier)];
   [player pause];
 }
+
 - (void)update:(FVPUpdateMessage *)input error:(FlutterError **)error {
   NSNumber *playerKey = @(input.textureId);
   FVPVideoPlayer *player = self.playersByIdentifier[playerKey];
 
   if (![player isKindOfClass:[FVPTextureBasedVideoPlayer class]]) {
-    *error = [FlutterError errorWithCode:@"video_player"
-                                 message:@"Update is only supported for texture-based players"
-                                 details:nil];
+    // *error = [FlutterError errorWithCode:@"video_player"
+    //                              message:@"Update is only supported for texture-based players"
+    //                              details:nil];
+    if (input.asset != nil) {
+        NSString *assetPath;
+        if (input.packageName != nil) {
+          assetPath = [self.registrar lookupKeyForAsset:input.asset fromPackage:input.packageName];
+        } else {
+          assetPath = [self.registrar lookupKeyForAsset:input.asset];
+        }
+
+        // Assuming FVPVideoPlayer has an update method for assets
+        [player updateWithAsset:assetPath
+                      avFactory:_avFactory
+                      registrar:_registrar]; // You might not need registrar here, depends on FVPVideoPlayer's method signature
+      } else if (input.uri != nil) {
+        NSURL *url = [NSURL URLWithString:input.uri];
+        // Assuming FVPVideoPlayer has an update method for URLs
+        [player updateWithURL:url
+                  httpHeaders:input.httpHeaders
+                    avFactory:_avFactory
+                    registrar:_registrar]; // You might not need registrar here
+      } else {
+        *error = [FlutterError errorWithCode:@"video_player"
+                                     message:@"Either 'asset' or 'uri' must be provided for update"
+                                     details:nil];
+        return;
+      }
     return;
   }
 

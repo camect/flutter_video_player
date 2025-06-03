@@ -66,6 +66,16 @@ NS_ASSUME_NONNULL_BEGIN
 /// Seeks to the specified location in the video and calls the completion handler when done, if one
 /// is supplied.
 - (void)seekTo:(int64_t)location completionHandler:(void (^_Nullable)(BOOL))completionHandler;
+// Add these to the @interface FVPVideoPlayer
+- (void)updateWithAsset:(AVURLAsset *)asset
+              avFactory:(id<FVPAVFactory>)avFactory
+              registrar:(NSObject<FlutterPluginRegistrar> *)registrar;
+
+- (void)updateWithURL:(NSURL *)url
+          httpHeaders:(NSDictionary<NSString *, NSString *> *)httpHeaders
+            avFactory:(id<FVPAVFactory>)avFactory
+            registrar:(NSObject<FlutterPluginRegistrar> *)registrar;
+@property(nonatomic, strong) id<FVPAVFactory> avFactory;
 @end
 
 NS_ASSUME_NONNULL_END

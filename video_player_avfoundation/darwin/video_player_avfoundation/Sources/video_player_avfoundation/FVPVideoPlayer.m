@@ -47,53 +47,11 @@ static void *rateContext = &rateContext;
   NSAssert(self, @"super init cannot be nil");
 
   _registrar = registrar;
+  _avFactory = avFactory; // Store avFactory for later use in update methods.
+                         // It was not stored in the original init.
 
-  AVAsset *asset = [item asset];
-  void (^assetCompletionHandler)(void) = ^{
-    if ([asset statusOfValueForKey:@"tracks" error:nil] == AVKeyValueStatusLoaded) {
-      NSArray *tracks = [asset tracksWithMediaType:AVMediaTypeVideo];
-      if ([tracks count] > 0) {
-        AVAssetTrack *videoTrack = tracks[0];
-        void (^trackCompletionHandler)(void) = ^{
-          if (self->_disposed) return;
-          if ([videoTrack statusOfValueForKey:@"preferredTransform"
-                                        error:nil] == AVKeyValueStatusLoaded) {
-            // Rotate the video by using a videoComposition and the preferredTransform
-            self->_preferredTransform = FVPGetStandardizedTransformForTrack(videoTrack);
-            // Do not use video composition when it is not needed.
-            if (CGAffineTransformIsIdentity(self->_preferredTransform)) {
-              return;
-            }
-            // Note:
-            // https://developer.apple.com/documentation/avfoundation/avplayeritem/1388818-videocomposition
-            // Video composition can only be used with file-based media and is not supported for
-            // use with media served using HTTP Live Streaming.
-            AVMutableVideoComposition *videoComposition =
-                [self getVideoCompositionWithTransform:self->_preferredTransform
-                                             withAsset:asset
-                                        withVideoTrack:videoTrack];
-            item.videoComposition = videoComposition;
-          }
-        };
-        [videoTrack loadValuesAsynchronouslyForKeys:@[ @"preferredTransform" ]
-                                  completionHandler:trackCompletionHandler];
-      }
-    }
-  };
-
-  _player = [avFactory playerWithPlayerItem:item];
-  _player.actionAtItemEnd = AVPlayerActionAtItemEndNone;
-
-  // Configure output.
-  NSDictionary *pixBuffAttributes = @{
-    (id)kCVPixelBufferPixelFormatTypeKey : @(kCVPixelFormatType_32BGRA),
-    (id)kCVPixelBufferIOSurfacePropertiesKey : @{}
-  };
-  _videoOutput = [avFactory videoOutputWithPixelBufferAttributes:pixBuffAttributes];
-
-  [self addObserversForItem:item player:_player];
-
-  [asset loadValuesAsynchronouslyForKeys:@[ @"tracks" ] completionHandler:assetCompletionHandler];
+  // Initial setup for the player item and observers
+  [self setupPlayerWithItem:item];
 
   return self;
 }
@@ -117,7 +75,113 @@ static void *rateContext = &rateContext;
   return path;
 }
 
+// --- New Helper Method ---
+- (void)setupPlayerWithItem:(AVPlayerItem *)item {
+    // Clean up existing observers and notifications if this is an update
+    if (_player && _player.currentItem) {
+        [self removeKeyValueObservers];
+        [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                        name:AVPlayerItemDidPlayToEndTimeNotification
+                                                      object:_player.currentItem];
+    }
+
+    AVAsset *asset = [item asset];
+    void (^assetCompletionHandler)(void) = ^{
+        if ([asset statusOfValueForKey:@"tracks" error:nil] == AVKeyValueStatusLoaded) {
+            NSArray *tracks = [asset tracksWithMediaType:AVMediaTypeVideo];
+            if ([tracks count] > 0) {
+                AVAssetTrack *videoTrack = tracks[0];
+                void (^trackCompletionHandler)(void) = ^{
+                    if (self->_disposed) return;
+                    if ([videoTrack statusOfValueForKey:@"preferredTransform"
+                                                  error:nil] == AVKeyValueStatusLoaded) {
+                        self->_preferredTransform = FVPGetStandardizedTransformForTrack(videoTrack);
+                        if (CGAffineTransformIsIdentity(self->_preferredTransform)) {
+                            return; // No need for video composition if transform is identity
+                        }
+                        AVMutableVideoComposition *videoComposition =
+                        [self getVideoCompositionWithTransform:self->_preferredTransform
+                                                     withAsset:asset
+                                                withVideoTrack:videoTrack];
+                        item.videoComposition = videoComposition;
+                    }
+                };
+                [videoTrack loadValuesAsynchronouslyForKeys:@[ @"preferredTransform" ]
+                                          completionHandler:trackCompletionHandler];
+            }
+        }
+    };
+
+    if (!_player) { // Create player only if it doesn't exist (for initial setup)
+        _player = [_avFactory playerWithPlayerItem:item];
+        _player.actionAtItemEnd = AVPlayerActionAtItemEndNone;
+    } else { // Replace current item if player already exists (for updates)
+        [_player replaceCurrentItemWithPlayerItem:item];
+    }
+
+    // Configure video output (can be reused if attributes are the same, or recreated if needed)
+    if (!_videoOutput) { // Create output only if it doesn't exist
+        NSDictionary *pixBuffAttributes = @{
+            (id)kCVPixelBufferPixelFormatTypeKey : @(kCVPixelFormatType_32BGRA),
+            (id)kCVPixelBufferIOSurfacePropertiesKey : @{}
+        };
+        _videoOutput = [_avFactory videoOutputWithPixelBufferAttributes:pixBuffAttributes];
+    }
+    // Note: The output will be added to the new item in observeValueForKeyPath when item.status is AVPlayerItemStatusReadyToPlay
+
+    [self addObserversForItem:item player:_player]; // Add observers to the new item
+
+    [asset loadValuesAsynchronouslyForKeys:@[ @"tracks" ] completionHandler:assetCompletionHandler];
+
+    // Reset initialization state for a new source
+    _isInitialized = NO;
+}
+
+// --- New Update Methods ---
+- (void)updateWithAsset:(NSString *)asset
+              avFactory:(id<FVPAVFactory>)avFactory
+              registrar:(NSObject<FlutterPluginRegistrar> *)registrar {
+    NSString *path = [[NSBundle mainBundle] pathForResource:asset ofType:nil];
+#if TARGET_OS_OSX
+    if (!path) {
+        path = [NSURL URLWithString:asset relativeToURL:NSBundle.mainBundle.bundleURL].path;
+    }
+#endif
+    [self updateWithURL:[NSURL fileURLWithPath:path]
+            httpHeaders:@{}
+              avFactory:avFactory
+              registrar:registrar];
+}
+
+- (void)updateWithURL:(NSURL *)url
+          httpHeaders:(nonnull NSDictionary<NSString *, NSString *> *)headers
+            avFactory:(id<FVPAVFactory>)avFactory
+            registrar:(NSObject<FlutterPluginRegistrar> *)registrar {
+    NSDictionary<NSString *, id> *options = nil;
+    if ([headers count] != 0) {
+        options = @{@"AVURLAssetHTTPHeaderFieldsKey" : headers};
+    }
+    AVURLAsset *urlAsset = [AVURLAsset URLAssetWithURL:url options:options];
+    AVPlayerItem *newItem = [AVPlayerItem playerItemWithAsset:urlAsset];
+
+    // Assuming _avFactory and _registrar are already set from init or can be updated here
+    // For consistency with original init, ensure _avFactory is set.
+    _avFactory = avFactory; // Make sure avFactory is updated/set if it's different
+    _registrar = registrar; // Make sure registrar is updated/set if it's different
+
+    [self setupPlayerWithItem:newItem];
+
+    // After updating the source, ensure the player state is consistent
+    // For example, if it was playing before, it should resume playing.
+    [self updatePlayingState]; // This will handle playing/pausing based on _isPlaying
+}
+// --- End New Update Methods ---
+
+
 - (void)addObserversForItem:(AVPlayerItem *)item player:(AVPlayer *)player {
+  // It's crucial to ensure that previous observers are removed before adding new ones,
+  // especially if this method is called during an update.
+  // The setupPlayerWithItem now handles removing previous observers.
   [item addObserver:self
          forKeyPath:@"loadedTimeRanges"
             options:NSKeyValueObservingOptionInitial | NSKeyValueObservingOptionNew
@@ -246,16 +310,18 @@ NS_INLINE CGFloat radiansToDegrees(CGFloat radians) {
       case AVPlayerItemStatusUnknown:
         break;
       case AVPlayerItemStatusReadyToPlay:
-        [item addOutput:_videoOutput];
+        // Ensure _videoOutput is only added once and for the correct item.
+        // If _videoOutput is already an output for this item, this call is a no-op.
+        // This is safe even if a new item is set.
+        if (![item.outputs containsObject:_videoOutput]) {
+          [item addOutput:_videoOutput];
+        }
         [self setupEventSinkIfReadyToPlay];
         break;
     }
   } else if (context == presentationSizeContext || context == durationContext) {
     AVPlayerItem *item = (AVPlayerItem *)object;
     if (item.status == AVPlayerItemStatusReadyToPlay) {
-      // Due to an apparent bug, when the player item is ready, it still may not have determined
-      // its presentation size or duration. When these properties are finally set, re-check if
-      // all required properties and instantiate the event sink if it is not already set up.
       [self setupEventSinkIfReadyToPlay];
     }
   } else if (context == playbackLikelyToKeepUpContext) {
@@ -270,8 +336,6 @@ NS_INLINE CGFloat radiansToDegrees(CGFloat radians) {
       }
     }
   } else if (context == rateContext) {
-    // Important: Make sure to cast the object to AVPlayer when observing the rate property,
-    // as it is not available in AVPlayerItem.
     AVPlayer *player = (AVPlayer *)object;
     if (_eventSink != nil) {
       _eventSink(
@@ -285,10 +349,6 @@ NS_INLINE CGFloat radiansToDegrees(CGFloat radians) {
     return;
   }
   if (_isPlaying) {
-    // Calling play is the same as setting the rate to 1.0 (or to defaultRate depending on iOS
-    // version) so last set playback speed must be set here if any instead.
-    // https://github.com/flutter/flutter/issues/71264
-    // https://github.com/flutter/flutter/issues/73643
     if (_targetPlaybackSpeed) {
       [self updateRate];
     } else {
@@ -302,12 +362,6 @@ NS_INLINE CGFloat radiansToDegrees(CGFloat radians) {
 /// Synchronizes the player's playback rate with targetPlaybackSpeed, constrained by the playback
 /// rate capabilities of the player's current item.
 - (void)updateRate {
-  // See https://developer.apple.com/library/archive/qa/qa1772/_index.html for an explanation of
-  // these checks.
-  // If status is not AVPlayerItemStatusReadyToPlay then both canPlayFastForward
-  // and canPlaySlowForward are always false and it is unknown whether video can
-  // be played at these speeds, updatePlayingState will be called again when
-  // status changes to AVPlayerItemStatusReadyToPlay.
   float speed = _targetPlaybackSpeed.floatValue;
   BOOL readyToPlay = _player.currentItem.status == AVPlayerItemStatusReadyToPlay;
   if (speed > 2.0 && !_player.currentItem.canPlayFastForward) {
@@ -329,7 +383,6 @@ NS_INLINE CGFloat radiansToDegrees(CGFloat radians) {
   if (_eventSink == nil) {
     return;
   }
-  // Prefer more detailed error information from tracks loading.
   NSError *error;
   if ([self.player.currentItem.asset statusOfValueForKey:@"tracks"
                                                    error:&error] != AVKeyValueStatusFailed) {
@@ -358,16 +411,12 @@ NS_INLINE CGFloat radiansToDegrees(CGFloat radians) {
     CGFloat width = size.width;
     CGFloat height = size.height;
 
-    // Wait until tracks are loaded to check duration or if there are any videos.
     AVAsset *asset = currentItem.asset;
     if ([asset statusOfValueForKey:@"tracks" error:nil] != AVKeyValueStatusLoaded) {
       void (^trackCompletionHandler)(void) = ^{
         if ([asset statusOfValueForKey:@"tracks" error:nil] != AVKeyValueStatusLoaded) {
-          // Cancelled, or something failed.
           return;
         }
-        // This completion block will run on an AVFoundation background queue.
-        // Hop back to the main thread to set up event sink.
         [self performSelector:_cmd onThread:NSThread.mainThread withObject:self waitUntilDone:NO];
       };
       [asset loadValuesAsynchronouslyForKeys:@[ @"tracks" ]
@@ -376,18 +425,12 @@ NS_INLINE CGFloat radiansToDegrees(CGFloat radians) {
     }
 
     BOOL hasVideoTracks = [asset tracksWithMediaType:AVMediaTypeVideo].count != 0;
-    // Audio-only HLS files have no size, so `currentItem.tracks.count` must be used to check for
-    // track presence, as AVAsset does not always provide track information in HLS streams.
     BOOL hasNoTracks = currentItem.tracks.count == 0 && asset.tracks.count == 0;
 
-    // The player has not yet initialized when it has no size, unless it is an audio-only track.
-    // HLS m3u8 video files never load any tracks, and are also not yet initialized until they have
-    // a size.
     if ((hasVideoTracks || hasNoTracks) && height == CGSizeZero.height &&
         width == CGSizeZero.width) {
       return;
     }
-    // The player may be initialized but still needs to determine the duration.
     int64_t duration = [self duration];
     if (duration == 0) {
       return;
@@ -420,18 +463,12 @@ NS_INLINE CGFloat radiansToDegrees(CGFloat radians) {
 }
 
 - (int64_t)duration {
-  // Note: https://openradar.appspot.com/radar?id=4968600712511488
-  // `[AVPlayerItem duration]` can be `kCMTimeIndefinite`,
-  // use `[[AVPlayerItem asset] duration]` instead.
   return FVPCMTimeToMillis([[[_player currentItem] asset] duration]);
 }
 
 - (void)seekTo:(int64_t)location completionHandler:(void (^)(BOOL))completionHandler {
   CMTime targetCMTime = CMTimeMake(location, 1000);
   CMTimeValue duration = _player.currentItem.asset.duration.value;
-  // Without adding tolerance when seeking to duration,
-  // seekToTime will never complete, and this call will hang.
-  // see issue https://github.com/flutter/flutter/issues/124475.
   CMTime tolerance = location == duration ? CMTimeMake(1, 1000) : kCMTimeZero;
   [_player seekToTime:targetCMTime
         toleranceBefore:tolerance
@@ -464,14 +501,6 @@ NS_INLINE CGFloat radiansToDegrees(CGFloat radians) {
 - (FlutterError *_Nullable)onListenWithArguments:(id _Nullable)arguments
                                        eventSink:(nonnull FlutterEventSink)events {
   _eventSink = events;
-  // TODO(@recastrodiaz): remove the line below when the race condition is resolved:
-  // https://github.com/flutter/flutter/issues/21483
-  // This line ensures the 'initialized' event is sent when the event
-  // 'AVPlayerItemStatusReadyToPlay' fires before _eventSink is set (this function
-  // onListenWithArguments is called)
-  // and also send error in similar case with 'AVPlayerItemStatusFailed'
-  // https://github.com/flutter/flutter/issues/151475
-  // https://github.com/flutter/flutter/issues/147707
   if (self.player.currentItem.status == AVPlayerItemStatusFailed) {
     [self sendFailedToLoadVideoEvent];
     return nil;
@@ -500,13 +529,27 @@ NS_INLINE CGFloat radiansToDegrees(CGFloat radians) {
 ///
 /// This is called from dealloc, so must not use any methods on self.
 - (void)removeKeyValueObservers {
-  AVPlayerItem *currentItem = _player.currentItem;
-  [currentItem removeObserver:self forKeyPath:@"status"];
-  [currentItem removeObserver:self forKeyPath:@"loadedTimeRanges"];
-  [currentItem removeObserver:self forKeyPath:@"presentationSize"];
-  [currentItem removeObserver:self forKeyPath:@"duration"];
-  [currentItem removeObserver:self forKeyPath:@"playbackLikelyToKeepUp"];
-  [_player removeObserver:self forKeyPath:@"rate"];
+    AVPlayerItem *currentItem = _player.currentItem;
+    if (currentItem) { // Ensure currentItem exists before trying to remove observers
+        @try {
+            [currentItem removeObserver:self forKeyPath:@"status" context:statusContext];
+            [currentItem removeObserver:self forKeyPath:@"loadedTimeRanges" context:timeRangeContext];
+            [currentItem removeObserver:self forKeyPath:@"presentationSize" context:presentationSizeContext];
+            [currentItem removeObserver:self forKeyPath:@"duration" context:durationContext];
+            [currentItem removeObserver:self forKeyPath:@"playbackLikelyToKeepUp" context:playbackLikelyToKeepUpContext];
+        } @catch (NSException *exception) {
+            // This can happen if an observer was not added for a particular key path,
+            // or if the item was already deallocated. Log it, but don't crash.
+            NSLog(@"Error removing AVPlayerItem observer: %@", exception.reason);
+        }
+    }
+    if (_player) { // Ensure _player exists before trying to remove observers
+        @try {
+            [_player removeObserver:self forKeyPath:@"rate" context:rateContext];
+        } @catch (NSException *exception) {
+            NSLog(@"Error removing AVPlayer observer: %@", exception.reason);
+        }
+    }
 }
 
 @end

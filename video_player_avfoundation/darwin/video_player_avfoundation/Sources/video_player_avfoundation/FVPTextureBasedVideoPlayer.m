@@ -106,31 +106,31 @@
     
     AVAsset *asset = [item asset];
     void (^assetCompletionHandler)(void) = ^{
-        // if ([asset statusOfValueForKey:@"tracks" error:nil] == AVKeyValueStatusLoaded) {
-        //     NSArray *tracks = [asset tracksWithMediaType:AVMediaTypeVideo];
-        //     if ([tracks count] > 0) {
-        //         AVAssetTrack *videoTrack = tracks[0];
-        //         void (^trackCompletionHandler)(void) = ^{
-        //             if (self.disposed) return;
-        //             if ([videoTrack statusOfValueForKey:@"preferredTransform"
-        //                                           error:nil] == AVKeyValueStatusLoaded) {
-        //                 // Rotate the video by using a videoComposition and the preferredTransform
-        //                 self->_preferredTransform = FVPGetStandardizedTransformForTrack(videoTrack);
-        //                 // Note:
-        //                 // https://developer.apple.com/documentation/avfoundation/avplayeritem/1388818-videocomposition
-        //                 // Video composition can only be used with file-based media and is not supported for
-        //                 // use with media served using HTTP Live Streaming.
-        //                 AVMutableVideoComposition *videoComposition =
-        //                 [self getVideoCompositionWithTransform:self->_preferredTransform
-        //                                              withAsset:asset
-        //                                         withVideoTrack:videoTrack];
-        //                 item.videoComposition = videoComposition;
-        //             }
-        //         };
-        //         [videoTrack loadValuesAsynchronouslyForKeys:@[ @"preferredTransform" ]
-        //                                   completionHandler:trackCompletionHandler];
-        //     }
-        // }
+        if ([asset statusOfValueForKey:@"tracks" error:nil] == AVKeyValueStatusLoaded) {
+            NSArray *tracks = [asset tracksWithMediaType:AVMediaTypeVideo];
+            // if ([tracks count] > 0) {
+            //     AVAssetTrack *videoTrack = tracks[0];
+            //     void (^trackCompletionHandler)(void) = ^{
+            //         if (self.disposed) return;
+            //         if ([videoTrack statusOfValueForKey:@"preferredTransform"
+            //                                       error:nil] == AVKeyValueStatusLoaded) {
+            //             // Rotate the video by using a videoComposition and the preferredTransform
+            //             self->_preferredTransform = FVPGetStandardizedTransformForTrack(videoTrack);
+            //             // Note:
+            //             // https://developer.apple.com/documentation/avfoundation/avplayeritem/1388818-videocomposition
+            //             // Video composition can only be used with file-based media and is not supported for
+            //             // use with media served using HTTP Live Streaming.
+            //             AVMutableVideoComposition *videoComposition =
+            //             [self getVideoCompositionWithTransform:self->_preferredTransform
+            //                                          withAsset:asset
+            //                                     withVideoTrack:videoTrack];
+            //             item.videoComposition = videoComposition;
+            //         }
+            //     };
+            //     [videoTrack loadValuesAsynchronouslyForKeys:@[ @"preferredTransform" ]
+            //                               completionHandler:trackCompletionHandler];
+            // }
+        }
     };
     
     // [_player replaceCurrentItemWithPlayerItem:item];

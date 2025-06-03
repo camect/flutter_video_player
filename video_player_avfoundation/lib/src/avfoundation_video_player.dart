@@ -53,7 +53,7 @@ class AVFoundationVideoPlayer extends VideoPlayerPlatform {
   Future<int?> createWithOptions(VideoCreationOptions options) async {
     final DataSource dataSource = options.dataSource;
     // Platform views are not supported on macOS yet. Use texture view instead.
-    final VideoViewType viewType = defaultTargetPlatform == TargetPlatform.macOS
+    final VideoViewType viewType = defaultTargetPlatform == TargetPlatform.macOS || defaultTargetPlatform == TargetPlatform.iOS
         ? VideoViewType.textureView
         : options.viewType;
 
