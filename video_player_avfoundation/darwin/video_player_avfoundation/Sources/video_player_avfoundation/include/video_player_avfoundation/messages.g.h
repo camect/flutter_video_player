@@ -28,6 +28,7 @@ typedef NS_ENUM(NSUInteger, FVPPlatformVideoViewType) {
 @class FVPPlatformVideoViewCreationParams;
 @class FVPCreationOptions;
 @class FVPUpdateMessage;
+@class FVPUpdateAssetRequest;
 
 /// Information passed to the platform view creation.
 @interface FVPPlatformVideoViewCreationParams : NSObject
@@ -71,6 +72,15 @@ typedef NS_ENUM(NSUInteger, FVPPlatformVideoViewType) {
 @property(nonatomic, copy) NSDictionary<NSString *, NSString *> * httpHeaders;
 @end
 
+@interface FVPUpdateAssetRequest : NSObject
+/// `init` unavailable to enforce nonnull fields, see the `make` class method.
+- (instancetype)init NS_UNAVAILABLE;
++ (instancetype)makeWithPlayerId:(NSInteger )playerId
+    asset:(NSString *)asset;
+@property(nonatomic, assign) NSInteger  playerId;
+@property(nonatomic, copy) NSString * asset;
+@end
+
 /// The codec used by all APIs.
 NSObject<FlutterMessageCodec> *FVPGetMessagesCodec(void);
 
@@ -79,6 +89,7 @@ NSObject<FlutterMessageCodec> *FVPGetMessagesCodec(void);
 /// @return `nil` only when `error != nil`.
 - (nullable NSNumber *)createWithOptions:(FVPCreationOptions *)creationOptions error:(FlutterError *_Nullable *_Nonnull)error;
 - (void)update:(FVPUpdateMessage *)msg error:(FlutterError *_Nullable *_Nonnull)error;
+- (void)updateAsset:(FVPUpdateAssetRequest *)request error:(FlutterError *_Nullable *_Nonnull)error;
 - (void)disposePlayer:(NSInteger)playerId error:(FlutterError *_Nullable *_Nonnull)error;
 - (void)setLooping:(BOOL)isLooping forPlayer:(NSInteger)playerId error:(FlutterError *_Nullable *_Nonnull)error;
 - (void)setVolume:(double)volume forPlayer:(NSInteger)playerId error:(FlutterError *_Nullable *_Nonnull)error;

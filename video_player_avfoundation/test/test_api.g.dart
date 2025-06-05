@@ -33,6 +33,9 @@ class _PigeonCodec extends StandardMessageCodec {
     }    else if (value is UpdateMessage) {
       buffer.putUint8(132);
       writeValue(buffer, value.encode());
+    }    else if (value is UpdateAssetRequest) {
+      buffer.putUint8(133);
+      writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
     }
@@ -50,6 +53,8 @@ class _PigeonCodec extends StandardMessageCodec {
         return CreationOptions.decode(readValue(buffer)!);
       case 132: 
         return UpdateMessage.decode(readValue(buffer)!);
+      case 133: 
+        return UpdateAssetRequest.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
     }
@@ -65,6 +70,8 @@ abstract class TestHostVideoPlayerApi {
   int create(CreationOptions creationOptions);
 
   void update(UpdateMessage msg);
+
+  void updateAsset(UpdateAssetRequest request);
 
   void dispose(int playerId);
 
@@ -146,6 +153,31 @@ abstract class TestHostVideoPlayerApi {
               'Argument for dev.flutter.pigeon.video_player_avfoundation.AVFoundationVideoPlayerApi.update was null, expected non-null UpdateMessage.');
           try {
             api.update(arg_msg!);
+            return wrapResponse(empty: true);
+          } on PlatformException catch (e) {
+            return wrapResponse(error: e);
+          }          catch (e) {
+            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          }
+        });
+      }
+    }
+    {
+      final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+          'dev.flutter.pigeon.video_player_avfoundation.AVFoundationVideoPlayerApi.updateAsset$messageChannelSuffix', pigeonChannelCodec,
+          binaryMessenger: binaryMessenger);
+      if (api == null) {
+        _testBinaryMessengerBinding!.defaultBinaryMessenger.setMockDecodedMessageHandler<Object?>(pigeonVar_channel, null);
+      } else {
+        _testBinaryMessengerBinding!.defaultBinaryMessenger.setMockDecodedMessageHandler<Object?>(pigeonVar_channel, (Object? message) async {
+          assert(message != null,
+          'Argument for dev.flutter.pigeon.video_player_avfoundation.AVFoundationVideoPlayerApi.updateAsset was null.');
+          final List<Object?> args = (message as List<Object?>?)!;
+          final UpdateAssetRequest? arg_request = (args[0] as UpdateAssetRequest?);
+          assert(arg_request != null,
+              'Argument for dev.flutter.pigeon.video_player_avfoundation.AVFoundationVideoPlayerApi.updateAsset was null, expected non-null UpdateAssetRequest.');
+          try {
+            api.updateAsset(arg_request!);
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);

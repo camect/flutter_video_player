@@ -148,6 +148,32 @@ class UpdateMessage {
   }
 }
 
+class UpdateAssetRequest {
+  UpdateAssetRequest({
+    required this.playerId,
+    required this.asset,
+  });
+
+  int playerId;
+
+  String asset;
+
+  Object encode() {
+    return <Object?>[
+      playerId,
+      asset,
+    ];
+  }
+
+  static UpdateAssetRequest decode(Object result) {
+    result as List<Object?>;
+    return UpdateAssetRequest(
+      playerId: result[0]! as int,
+      asset: result[1]! as String,
+    );
+  }
+}
+
 
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
@@ -168,6 +194,9 @@ class _PigeonCodec extends StandardMessageCodec {
     }    else if (value is UpdateMessage) {
       buffer.putUint8(132);
       writeValue(buffer, value.encode());
+    }    else if (value is UpdateAssetRequest) {
+      buffer.putUint8(133);
+      writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
     }
@@ -185,6 +214,8 @@ class _PigeonCodec extends StandardMessageCodec {
         return CreationOptions.decode(readValue(buffer)!);
       case 132: 
         return UpdateMessage.decode(readValue(buffer)!);
+      case 133: 
+        return UpdateAssetRequest.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
     }
@@ -262,6 +293,28 @@ class AVFoundationVideoPlayerApi {
     );
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_channel.send(<Object?>[msg]) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  Future<void> updateAsset(UpdateAssetRequest request) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.video_player_avfoundation.AVFoundationVideoPlayerApi.updateAsset$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(<Object?>[request]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {

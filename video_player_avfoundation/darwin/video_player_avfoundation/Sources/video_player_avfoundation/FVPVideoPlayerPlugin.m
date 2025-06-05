@@ -45,7 +45,6 @@
 @property(readonly, strong, nonatomic) NSObject<FlutterPluginRegistrar> *registrar;
 @property(nonatomic, strong) id<FVPDisplayLinkFactory> displayLinkFactory;
 @property(nonatomic, strong) id<FVPAVFactory> avFactory;
-@property(nonatomic, strong) NSMutableDictionary<NSNumber *, FVPVideoPlayer *> *playersByTextureId;
 // TODO(stuartmorgan): Decouple identifiers for platform views and texture views.
 @property(nonatomic, assign) int64_t nextNonTexturePlayerIdentifier;
 @end
@@ -54,15 +53,15 @@
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
   FVPVideoPlayerPlugin *instance = [[FVPVideoPlayerPlugin alloc] initWithRegistrar:registrar];
   [registrar publish:instance];
-#if TARGET_OS_IOS
-  // Platform views are only supported on iOS as of now.
-  FVPNativeVideoViewFactory *factory = [[FVPNativeVideoViewFactory alloc]
-               initWithMessenger:registrar.messenger
-      playerByIdentifierProvider:^FVPVideoPlayer *(NSNumber *playerIdentifier) {
-        return instance->_playersByIdentifier[playerIdentifier];
-      }];
-  [registrar registerViewFactory:factory withId:@"plugins.flutter.dev/video_player_ios"];
-#endif
+// #if TARGET_OS_IOS
+//   // Platform views are only supported on iOS as of now.
+//   FVPNativeVideoViewFactory *factory = [[FVPNativeVideoViewFactory alloc]
+//                initWithMessenger:registrar.messenger
+//       playerByIdentifierProvider:^FVPVideoPlayer *(NSNumber *playerIdentifier) {
+//         return instance->_playersByIdentifier[playerIdentifier];
+//       }];
+//   [registrar registerViewFactory:factory withId:@"plugins.flutter.dev/video_player_ios"];
+// #endif
   SetUpFVPAVFoundationVideoPlayerApi(registrar.messenger, instance);
 }
 
@@ -87,6 +86,34 @@
   // separately).
   _nextNonTexturePlayerIdentifier = INT_MAX;
   return self;
+}
+- (void)updateAsset:(FVPUpdateAssetRequest *)input error:(FlutterError **)error {
+  FVPVideoPlayer *player = self.playersByIdentifier[@(input.playerId)];
+  if (![player isKindOfClass:[FVPTextureBasedVideoPlayer class]]) {
+    *error = [FlutterError errorWithCode:@"invalid_player"
+                                 message:@"Player is not a texture-based video player."
+                                 details:nil];
+    return;
+  }
+
+  FVPTextureBasedVideoPlayer *texturePlayer = (FVPTextureBasedVideoPlayer *)player;
+
+  NSString *path = input.asset;
+
+  // Check if it's a file URL
+  if ([path hasPrefix:@"file://"]) {
+    // Convert file URL string to actual path
+    NSURL *fileURL = [NSURL URLWithString:path];
+    if (![[NSFileManager defaultManager] fileExistsAtPath:fileURL.path]) {
+      *error = [FlutterError errorWithCode:@"file_not_found"
+                                   message:@"File path does not exist."
+                                   details:path];
+      return;
+    }
+
+    [texturePlayer updateWithFile:fileURL.path]; 
+    return;
+  }
 }
 
 - (void)detachFromEngineForRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
@@ -307,39 +334,6 @@ static void upgradeAudioSessionCategory(AVAudioSessionCategory requestedCategory
   FVPVideoPlayer *player = self.playersByIdentifier[@(playerIdentifier)];
   [player pause];
 }
-- (void)update:(FVPUpdateMessage *)input error:(FlutterError **)error {
-    FVPFrameUpdater *frameUpdater = [[FVPFrameUpdater alloc] initWithRegistry:_registry];
-    
-    FVPVideoPlayer *player = self.playersByTextureId[@(input.textureId)];;
-    if (input.asset) {
-        NSString *assetPath;
-        if (input.packageName) {
-            assetPath = [_registrar lookupKeyForAsset:input.asset fromPackage:input.packageName];
-        } else {
-            assetPath = [_registrar lookupKeyForAsset:input.asset];
-        }
-        @try {
-            [player updateWithAsset:assetPath
-                       frameUpdater:frameUpdater
-             
-                          avFactory:_avFactory
-                          registrar:self.registrar];
-            [self onPlayerSetup:player frameUpdater:frameUpdater];
-        } @catch (NSException *exception) {
-            *error = [FlutterError errorWithCode:@"video_player" message:exception.reason details:nil];
-        }
-    } else if (input.uri) {
-        [player updateWithURL:[NSURL URLWithString:input.uri]
-                 frameUpdater:frameUpdater
-                  httpHeaders:input.httpHeaders
-                    avFactory:_avFactory
-                    registrar:self.registrar];
-        [self onPlayerSetup:player frameUpdater:frameUpdater];
-    } else {
-        *error = [FlutterError errorWithCode:@"video_player" message:@"not implemented" details:nil];
-    }
-}
-
 - (void)setMixWithOthers:(BOOL)mixWithOthers
                    error:(FlutterError *_Nullable __autoreleasing *)error {
 #if TARGET_OS_OSX

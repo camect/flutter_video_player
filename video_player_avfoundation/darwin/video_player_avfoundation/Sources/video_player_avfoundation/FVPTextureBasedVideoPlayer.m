@@ -96,6 +96,33 @@
   return self;
 }
 
+- (void)updateWithFile:(NSString *)filePath {
+  NSURL *fileURL = [NSURL fileURLWithPath:filePath];
+  AVURLAsset *urlAsset = [AVURLAsset URLAssetWithURL:fileURL options:nil];
+  AVPlayerItem *newItem = [AVPlayerItem playerItemWithAsset:urlAsset];
+
+  // Remove any observers from old item if needed
+  [self removeObserversFromPlayerItem:self.player.currentItem];
+
+  // Replace current player item
+  [self.player replaceCurrentItemWithPlayerItem:newItem];
+
+  // Re-attach the player to the layer
+  self.playerLayer.player = self.player;
+
+  // Reset internal state
+  self.latestPixelBuffer = nil;
+  self.waitingForFrame = YES;
+  self.displayLink.running = YES;
+  [self expectFrame];
+  self.selfRefresh = true;
+}
+- (void)removeObserversFromPlayerItem:(AVPlayerItem *)item {
+  if (!item) return;
+  // Example if you were observing:
+  // [item removeObserver:self forKeyPath:@"status"];
+  // Add your actual observer cleanup here
+}
 - (void)dealloc {
   CVBufferRelease(_latestPixelBuffer);
 }

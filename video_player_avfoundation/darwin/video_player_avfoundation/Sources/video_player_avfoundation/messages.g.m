@@ -59,6 +59,12 @@ static id GetNullableObjectAtIndex(NSArray<id> *array, NSInteger key) {
 - (NSArray<id> *)toList;
 @end
 
+@interface FVPUpdateAssetRequest ()
++ (FVPUpdateAssetRequest *)fromList:(NSArray<id> *)list;
++ (nullable FVPUpdateAssetRequest *)nullableFromList:(NSArray<id> *)list;
+- (NSArray<id> *)toList;
+@end
+
 @implementation FVPPlatformVideoViewCreationParams
 + (instancetype)makeWithPlayerId:(NSInteger )playerId {
   FVPPlatformVideoViewCreationParams* pigeonResult = [[FVPPlatformVideoViewCreationParams alloc] init];
@@ -163,6 +169,31 @@ static id GetNullableObjectAtIndex(NSArray<id> *array, NSInteger key) {
 }
 @end
 
+@implementation FVPUpdateAssetRequest
++ (instancetype)makeWithPlayerId:(NSInteger )playerId
+    asset:(NSString *)asset {
+  FVPUpdateAssetRequest* pigeonResult = [[FVPUpdateAssetRequest alloc] init];
+  pigeonResult.playerId = playerId;
+  pigeonResult.asset = asset;
+  return pigeonResult;
+}
++ (FVPUpdateAssetRequest *)fromList:(NSArray<id> *)list {
+  FVPUpdateAssetRequest *pigeonResult = [[FVPUpdateAssetRequest alloc] init];
+  pigeonResult.playerId = [GetNullableObjectAtIndex(list, 0) integerValue];
+  pigeonResult.asset = GetNullableObjectAtIndex(list, 1);
+  return pigeonResult;
+}
++ (nullable FVPUpdateAssetRequest *)nullableFromList:(NSArray<id> *)list {
+  return (list) ? [FVPUpdateAssetRequest fromList:list] : nil;
+}
+- (NSArray<id> *)toList {
+  return @[
+    @(self.playerId),
+    self.asset ?: [NSNull null],
+  ];
+}
+@end
+
 @interface FVPMessagesPigeonCodecReader : FlutterStandardReader
 @end
 @implementation FVPMessagesPigeonCodecReader
@@ -178,6 +209,8 @@ static id GetNullableObjectAtIndex(NSArray<id> *array, NSInteger key) {
       return [FVPCreationOptions fromList:[self readValue]];
     case 132: 
       return [FVPUpdateMessage fromList:[self readValue]];
+    case 133: 
+      return [FVPUpdateAssetRequest fromList:[self readValue]];
     default:
       return [super readValueOfType:type];
   }
@@ -200,6 +233,9 @@ static id GetNullableObjectAtIndex(NSArray<id> *array, NSInteger key) {
     [self writeValue:[value toList]];
   } else if ([value isKindOfClass:[FVPUpdateMessage class]]) {
     [self writeByte:132];
+    [self writeValue:[value toList]];
+  } else if ([value isKindOfClass:[FVPUpdateAssetRequest class]]) {
+    [self writeByte:133];
     [self writeValue:[value toList]];
   } else {
     [super writeValue:value];
@@ -282,6 +318,25 @@ void SetUpFVPAVFoundationVideoPlayerApiWithSuffix(id<FlutterBinaryMessenger> bin
         FVPUpdateMessage *arg_msg = GetNullableObjectAtIndex(args, 0);
         FlutterError *error;
         [api update:arg_msg error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:[NSString stringWithFormat:@"%@%@", @"dev.flutter.pigeon.video_player_avfoundation.AVFoundationVideoPlayerApi.updateAsset", messageChannelSuffix]
+        binaryMessenger:binaryMessenger
+        codec:FVPGetMessagesCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(updateAsset:error:)], @"FVPAVFoundationVideoPlayerApi api (%@) doesn't respond to @selector(updateAsset:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray<id> *args = message;
+        FVPUpdateAssetRequest *arg_request = GetNullableObjectAtIndex(args, 0);
+        FlutterError *error;
+        [api updateAsset:arg_request error:&error];
         callback(wrapResult(nil, error));
       }];
     } else {

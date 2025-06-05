@@ -55,6 +55,10 @@ class UpdateMessage {
   String? formatHint;
   Map<String?, String?> httpHeaders;
 }
+class UpdateAssetRequest {
+  late int playerId;
+  late String asset;
+}
 
 @HostApi(dartHostTestHandler: 'TestHostVideoPlayerApi')
 abstract class AVFoundationVideoPlayerApi {
@@ -65,6 +69,8 @@ abstract class AVFoundationVideoPlayerApi {
   int create(CreationOptions creationOptions);
   @ObjCSelector('update:')
   void update(UpdateMessage msg);
+  @ObjCSelector('updateAsset:')
+  void updateAsset(UpdateAssetRequest request);
   @ObjCSelector('disposePlayer:')
   void dispose(int playerId);
   @ObjCSelector('setLooping:forPlayer:')
