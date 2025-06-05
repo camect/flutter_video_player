@@ -40,6 +40,7 @@
                     avFactory:(id<FVPAVFactory>)avFactory
                     registrar:(NSObject<FlutterPluginRegistrar> *)registrar
                    onDisposed:(void (^)(int64_t))onDisposed {
+  // Initialize with a file URL derived from the asset name.
   return [self initWithURL:[NSURL fileURLWithPath:[FVPVideoPlayer absolutePathForAssetName:asset]]
               frameUpdater:frameUpdater
                displayLink:displayLink
@@ -56,12 +57,15 @@
                   avFactory:(id<FVPAVFactory>)avFactory
                   registrar:(NSObject<FlutterPluginRegistrar> *)registrar
                  onDisposed:(void (^)(int64_t))onDisposed {
+  // Prepare options for AVURLAsset, including HTTP headers if provided.
   NSDictionary<NSString *, id> *options = nil;
   if ([headers count] != 0) {
     options = @{@"AVURLAssetHTTPHeaderFieldsKey" : headers};
   }
+  // Create an AVURLAsset from the URL and options.
   AVURLAsset *urlAsset = [AVURLAsset URLAssetWithURL:url options:options];
   AVPlayerItem *item = [AVPlayerItem playerItemWithAsset:urlAsset];
+  // Initialize with the created AVPlayerItem.
   return [self initWithPlayerItem:item
                      frameUpdater:frameUpdater
                       displayLink:displayLink
@@ -76,14 +80,15 @@
                          avFactory:(id<FVPAVFactory>)avFactory
                          registrar:(NSObject<FlutterPluginRegistrar> *)registrar
                         onDisposed:(void (^)(int64_t))onDisposed {
+  // Call superclass initializer (FVPVideoPlayer).
   self = [super initWithPlayerItem:item avFactory:avFactory registrar:registrar];
 
   if (self) {
-    _frameUpdater = frameUpdater;
-    _displayLink = displayLink;
-    _frameUpdater.displayLink = _displayLink;
-    _selfRefresh = true;
-    _onDisposed = [onDisposed copy];
+    _frameUpdater = frameUpdater;     // Store the frame updater.
+    _displayLink = displayLink;       // Store the display link.
+    _frameUpdater.displayLink = _displayLink; // Link display link to frame updater.
+    _selfRefresh = true;              // Enable self-refreshing behavior for copyPixelBuffer.
+    _onDisposed = [onDisposed copy];  // Store the dispose callback.
 
     // This is to fix 2 bugs: 1. blank video for encrypted video streams on iOS 16
     // (https://github.com/flutter/flutter/issues/111457) and 2. swapped width and height for some
@@ -91,40 +96,61 @@
     // invisible AVPlayerLayer is used to overwrite the protection of pixel buffers in those streams
     // for issue #1, and restore the correct width and height for issue #2.
     _playerLayer = [AVPlayerLayer playerLayerWithPlayer:self.player];
+    // Add the player layer as a sublayer to the Flutter view's layer.
     [self.flutterViewLayer addSublayer:self.playerLayer];
   }
   return self;
 }
 
 - (void)updateWithFile:(NSString *)filePath {
+  // Create a new AVPlayerItem from the new file path.
   NSURL *fileURL = [NSURL fileURLWithPath:filePath];
   AVURLAsset *urlAsset = [AVURLAsset URLAssetWithURL:fileURL options:nil];
   AVPlayerItem *newItem = [AVPlayerItem playerItemWithAsset:urlAsset];
 
-  // Remove any observers from old item if needed
-  [self removeObserversFromPlayerItem:self.player.currentItem];
+  // Store the old item before replacing it.
+  AVPlayerItem *oldItem = self.player.currentItem;
 
-  // Replace current player item
+  // IMPORTANT: Remove observers from the OLD item before replacing it.
+  // This calls the method in the superclass (FVPVideoPlayer) that correctly removes
+  // all KVO and notification observers associated with `oldItem`.
+  [self removeObserversFromPlayerItem:oldItem player:self.player];
+
+  // Replace the current player item with the new one.
   [self.player replaceCurrentItemWithPlayerItem:newItem];
 
-  // Re-attach the player to the layer
+  // IMPORTANT: Add observers to the NEW item after it has been set.
+  // This calls the method in the superclass (FVPVideoPlayer) that correctly adds
+  // all KVO and notification observers associated with `newItem`.
+  [self addObserversToPlayerItem:newItem player:self.player];
+
+  // Re-attach the player to the layer. This is generally redundant if the `_player` object
+  // itself doesn't change, but harmless.
   self.playerLayer.player = self.player;
 
-  // Reset internal state
+  // Reset internal state for the new video.
+  CVBufferRelease(self.latestPixelBuffer); // Release old pixel buffer.
   self.latestPixelBuffer = nil;
-  self.waitingForFrame = YES;
-  self.displayLink.running = YES;
-  [self expectFrame];
-  self.selfRefresh = true;
+  self.waitingForFrame = YES;      // Expect a new frame.
+  self.displayLink.running = YES;  // Ensure display link is running to get the new frame.
+  [self expectFrame];              // Signal expectation of a new frame.
+  self.selfRefresh = true;         // Re-enable self-refresh for copyPixelBuffer.
 }
+
+// This method was an empty placeholder in the original FVPTextureBasedVideoPlayer.m.
+// It is now removed as the superclass (FVPVideoPlayer) provides the necessary
+// `removeObserversFromPlayerItem:player:` method which is called directly in `updateWithFile:`.
+/*
 - (void)removeObserversFromPlayerItem:(AVPlayerItem *)item {
-  if (!item) return;
-  // Example if you were observing:
-  // [item removeObserver:self forKeyPath:@"status"];
-  // Add your actual observer cleanup here
+    if (!item) return;
+    // ... This method was empty, now handled by superclass
 }
+*/
+
 - (void)dealloc {
-  CVBufferRelease(_latestPixelBuffer);
+  // The superclass's `dealloc` will call `removeKeyValueObservers`, which now correctly
+  // handles cleanup of the current AVPlayerItem and AVPlayer.
+  CVBufferRelease(_latestPixelBuffer); // Release the latest pixel buffer.
 }
 
 - (void)setTextureIdentifier:(int64_t)textureIdentifier {
@@ -132,9 +158,9 @@
 }
 
 - (void)expectFrame {
-  self.waitingForFrame = YES;
+  self.waitingForFrame = YES; // Mark that we are waiting for a frame.
 
-  _displayLink.running = YES;
+  _displayLink.running = YES; // Ensure the display link is running.
 }
 
 #pragma mark - Private methods
@@ -147,6 +173,7 @@
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
   // TODO(hellohuanlin): Provide a non-deprecated codepath. See
   // https://github.com/flutter/flutter/issues/104117
+  // On iOS, get the root view controller's view layer.
   UIViewController *root = UIApplication.sharedApplication.keyWindow.rootViewController;
 #pragma clang diagnostic pop
   return root.view.layer;
@@ -156,28 +183,26 @@
 #pragma mark - Overrides
 
 - (void)updatePlayingState {
-  [super updatePlayingState];
+  [super updatePlayingState]; // Call superclass implementation to update player's state.
   // If the texture is still waiting for an expected frame, the display link needs to keep
   // running until it arrives regardless of the play/pause state.
   _displayLink.running = self.isPlaying || self.waitingForFrame;
 }
 
 - (void)seekTo:(int64_t)location completionHandler:(void (^)(BOOL))completionHandler {
-  CMTime previousCMTime = self.player.currentTime;
+  CMTime previousCMTime = self.player.currentTime; // Store current time before seeking.
   [super seekTo:location
       completionHandler:^(BOOL completed) {
+        // If the seek actually resulted in a time change.
         if (CMTimeCompare(self.player.currentTime, previousCMTime) != 0) {
-          // Ensure that a frame is drawn once available, even if currently paused. In theory a
-          // race is possible here where the new frame has already drawn by the time this code
-          // runs, and the display link stays on indefinitely, but that should be relatively
-          // harmless. This must use the display link rather than just informing the engine that a
-          // new frame is available because the seek completing doesn't guarantee that the pixel
-          // buffer is already available.
+          // Ensure that a frame is drawn once available, even if currently paused.
+          // This uses the display link because the pixel buffer might not be immediately available
+          // after the seek completes.
           [self expectFrame];
         }
 
         if (completionHandler) {
-          completionHandler(completed);
+          completionHandler(completed); // Call the original completion handler.
         }
       }];
 }
@@ -191,16 +216,17 @@
     return;
   }
 
-  [super disposeSansEventChannel];
+  [super disposeSansEventChannel]; // Call superclass dispose.
 
-  [self.playerLayer removeFromSuperlayer];
+  [self.playerLayer removeFromSuperlayer]; // Remove the AVPlayerLayer from its superlayer.
 
-  _displayLink = nil;
+  _displayLink = nil; // Release the display link.
 }
 
 - (void)dispose {
-  [super dispose];
+  [super dispose]; // Call superclass dispose.
 
+  // Execute the onDisposed callback with the texture identifier.
   _onDisposed(self.frameUpdater.textureIdentifier);
 }
 
@@ -221,25 +247,26 @@
   CFTimeInterval currentTime = CACurrentMediaTime();
   CFTimeInterval duration = self.frameUpdater.frameDuration;
   if (fabs(self.targetTime - currentTime) > duration * resetThreshold) {
-    self.targetTime = currentTime;
+    self.targetTime = currentTime; // Reset target time if significantly off.
   }
-  self.targetTime += duration;
+  self.targetTime += duration; // Advance target time by frame duration.
 
   CVPixelBufferRef buffer = NULL;
   CMTime outputItemTime = [self.videoOutput itemTimeForHostTime:self.targetTime];
+  // Check if a new pixel buffer is available for the target time.
   if ([self.videoOutput hasNewPixelBufferForItemTime:outputItemTime]) {
+    // Copy the pixel buffer and release the old one.
     buffer = [self.videoOutput copyPixelBufferForItemTime:outputItemTime itemTimeForDisplay:NULL];
     if (buffer) {
-      // Balance the owned reference from copyPixelBufferForItemTime.
-      CVBufferRelease(self.latestPixelBuffer);
-      self.latestPixelBuffer = buffer;
+      CVBufferRelease(self.latestPixelBuffer); // Release the old buffer.
+      self.latestPixelBuffer = buffer; // Store the new buffer.
     }
   }
 
+  // If we were waiting for a frame and a new buffer is now available.
   if (self.waitingForFrame && buffer) {
-    self.waitingForFrame = NO;
-    // If the display link was only running temporarily to pick up a new frame while the video was
-    // paused, stop it again.
+    self.waitingForFrame = NO; // No longer waiting.
+    // If the display link was only running temporarily (e.g., after a seek while paused), stop it.
     if (!self.isPlaying) {
       self.displayLink.running = NO;
     }
@@ -260,11 +287,13 @@
     // If duration changes by this fraction or more then reset average frame duration measurement.
     const float resetFraction = 0.01;
 
+    // Reset measurement if duration has significantly changed.
     if (fabs(duration - self.latestDuration) >= self.latestDuration * resetFraction) {
       self.startTime = currentTime;
       self.framesCount = 0;
       self.latestDuration = duration;
     }
+    // Perform check after windowSize frames.
     if (self.framesCount == windowSize) {
       CFTimeInterval averageDuration = (currentTime - self.startTime) / windowSize;
       if (averageDuration < duration * durationThreshold) {
@@ -272,13 +301,14 @@
               @"please report this to "
               @"https://github.com/flutter/flutter/issues.",
               averageDuration, duration);
-        self.selfRefresh = false;
+        self.selfRefresh = false; // Disable self-refresh if average duration is too short.
       }
-      self.startTime = currentTime;
-      self.framesCount = 0;
+      self.startTime = currentTime; // Reset start time for next window.
+      self.framesCount = 0; // Reset frame count.
     }
-    self.framesCount++;
+    self.framesCount++; // Increment frame count.
 
+    // Dispatch textureFrameAvailable to the main queue.
     dispatch_async(dispatch_get_main_queue(), ^{
       [self.frameUpdater.registry textureFrameAvailable:self.frameUpdater.textureIdentifier];
     });
@@ -291,6 +321,7 @@
 
 - (void)onTextureUnregistered:(NSObject<FlutterTexture> *)texture {
   dispatch_async(dispatch_get_main_queue(), ^{
+    // Dispose the player if it hasn't been disposed already.
     if (!self.disposed) {
       [self dispose];
     }

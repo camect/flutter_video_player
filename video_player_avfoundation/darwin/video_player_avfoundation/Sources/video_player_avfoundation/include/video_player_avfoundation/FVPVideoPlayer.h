@@ -66,6 +66,8 @@ NS_ASSUME_NONNULL_BEGIN
 /// Seeks to the specified location in the video and calls the completion handler when done, if one
 /// is supplied.
 - (void)seekTo:(int64_t)location completionHandler:(void (^_Nullable)(BOOL))completionHandler;
+- (void)removeObserversFromPlayerItem:(AVPlayerItem *)item player:(AVPlayer *)player;
+- (void)addObserversToPlayerItem:(AVPlayerItem *)item player:(AVPlayer *)player;
 @end
 
 NS_ASSUME_NONNULL_END

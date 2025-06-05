@@ -47,9 +47,12 @@ static void *rateContext = &rateContext;
   NSAssert(self, @"super init cannot be nil");
 
   _registrar = registrar;
+  _isInitialized = NO; // Player is not initialized yet.
+  _disposed = NO;      // Player is not disposed.
 
   AVAsset *asset = [item asset];
   void (^assetCompletionHandler)(void) = ^{
+    if (self->_disposed) return;
     if ([asset statusOfValueForKey:@"tracks" error:nil] == AVKeyValueStatusLoaded) {
       NSArray *tracks = [asset tracksWithMediaType:AVMediaTypeVideo];
       if ([tracks count] > 0) {
@@ -118,6 +121,14 @@ static void *rateContext = &rateContext;
 }
 
 - (void)addObserversForItem:(AVPlayerItem *)item player:(AVPlayer *)player {
+  [self addObserversToPlayerItem:item player:player];
+  [player addObserver:self
+           forKeyPath:@"rate"
+              options:NSKeyValueObservingOptionInitial | NSKeyValueObservingOptionNew
+              context:rateContext];
+}
+
+- (void)addObserversToPlayerItem:(AVPlayerItem *)item player:(AVPlayer *)player {
   [item addObserver:self
          forKeyPath:@"loadedTimeRanges"
             options:NSKeyValueObservingOptionInitial | NSKeyValueObservingOptionNew
@@ -139,14 +150,7 @@ static void *rateContext = &rateContext;
             options:NSKeyValueObservingOptionInitial | NSKeyValueObservingOptionNew
             context:playbackLikelyToKeepUpContext];
 
-  // Add observer to AVPlayer instead of AVPlayerItem since the AVPlayerItem does not have a "rate"
-  // property
-  [player addObserver:self
-           forKeyPath:@"rate"
-              options:NSKeyValueObservingOptionInitial | NSKeyValueObservingOptionNew
-              context:rateContext];
-
-  // Add an observer that will respond to itemDidPlayToEndTime
+  // Add an observer for the AVPlayerItemDidPlayToEndTimeNotification.
   [[NSNotificationCenter defaultCenter] addObserver:self
                                            selector:@selector(itemDidPlayToEndTime:)
                                                name:AVPlayerItemDidPlayToEndTimeNotification
@@ -181,7 +185,6 @@ NS_INLINE CGFloat radiansToDegrees(CGFloat radians) {
     // Convert -90 to 270 and -180 to 180
     return degrees + 360;
   }
-  // Output degrees in between [0, 360]
   return degrees;
 };
 
@@ -389,7 +392,7 @@ NS_INLINE CGFloat radiansToDegrees(CGFloat radians) {
     }
     // The player may be initialized but still needs to determine the duration.
     int64_t duration = [self duration];
-    if (duration == 0) {
+    if (duration == 0 || duration == TIME_UNSET) {
       return;
     }
 
@@ -500,13 +503,47 @@ NS_INLINE CGFloat radiansToDegrees(CGFloat radians) {
 ///
 /// This is called from dealloc, so must not use any methods on self.
 - (void)removeKeyValueObservers {
+  // Remove observers from the current AVPlayerItem.
+  // This uses the new method to correctly remove item-specific observers.
   AVPlayerItem *currentItem = _player.currentItem;
-  [currentItem removeObserver:self forKeyPath:@"status"];
-  [currentItem removeObserver:self forKeyPath:@"loadedTimeRanges"];
-  [currentItem removeObserver:self forKeyPath:@"presentationSize"];
-  [currentItem removeObserver:self forKeyPath:@"duration"];
-  [currentItem removeObserver:self forKeyPath:@"playbackLikelyToKeepUp"];
-  [_player removeObserver:self forKeyPath:@"rate"];
+  [self removeObserversFromPlayerItem:currentItem player:_player];
+
+  // Remove the player rate observer. Use @try/@catch for robustness.
+  @try {
+      [_player removeObserver:self forKeyPath:@"rate"];
+  } @catch (NSException *exception) {
+      // Observer not registered, ignore.
+  }
+}
+
+// Removes KVO observers and notification observers for a specific AVPlayerItem.
+- (void)removeObserversFromPlayerItem:(AVPlayerItem *)item player:(AVPlayer *)player {
+  if (!item) return; // Nothing to do if item is nil.
+
+  // Use @try/@catch around KVO removals to safely handle cases where an observer might
+  // not have been successfully added (e.g., if called multiple times or on an already deallocated object).
+  @try {
+      [item removeObserver:self forKeyPath:@"status"];
+  } @catch (NSException *exception) {}
+  @try {
+      [item removeObserver:self forKeyPath:@"loadedTimeRanges"];
+  } @catch (NSException *exception) {}
+  @try {
+      [item removeObserver:self forKeyPath:@"presentationSize"];
+  } @catch (NSException *exception) {}
+  @try {
+      [item removeObserver:self forKeyPath:@"duration"];
+  } @catch (NSException *exception) {}
+  @try {
+      [item removeObserver:self forKeyPath:@"playbackLikelyToKeepUp"];
+  } @catch (NSException *exception) {}
+
+  // Remove notification observer for AVPlayerItemDidPlayToEndTimeNotification.
+  [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                  name:AVPlayerItemDidPlayToEndTimeNotification
+                                                object:item];
+  // Note: The player's 'rate' observer is NOT removed here as it's specific to the AVPlayer instance,
+  // not the AVPlayerItem. It is removed in `removeKeyValueObservers` when the player itself is being disposed.
 }
 
 @end
