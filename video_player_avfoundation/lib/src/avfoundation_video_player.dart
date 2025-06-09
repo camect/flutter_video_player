@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -97,35 +96,18 @@ class AVFoundationVideoPlayer extends VideoPlayerPlatform {
 
   @override
   Future<void> update(int textureId, DataSource dataSource) async {
-    String? asset;
-    String? packageName;
+    //TODO: DataSourceType.asset, DataSourceType.network
     String? uri;
-    String? formatHint;
-    Map<String, String> httpHeaders = <String, String>{};
     switch (dataSource.sourceType) {
-      case DataSourceType.asset:
-        asset = dataSource.asset;
-        packageName = dataSource.package;
-      case DataSourceType.network:
-        uri = dataSource.uri;
-        formatHint = _videoFormatStringMap[dataSource.formatHint];
-        httpHeaders = dataSource.httpHeaders;
       case DataSourceType.file:
         uri = dataSource.uri;
       case DataSourceType.contentUri:
         uri = dataSource.uri;
+      default:
+        uri = '';
     }
-    // final UpdateMessage message = UpdateMessage(
-    //   textureId: textureId,
-    //   asset: asset,
-    //   packageName: packageName,
-    //   uri: uri,
-    //   httpHeaders: httpHeaders,
-    //   formatHint: formatHint,
-    // );
-    log('Updating video player with textureId: $textureId, asset: $asset, packageName: $packageName, uri: $uri, formatHint: $formatHint, httpHeaders: $httpHeaders');
-    final UpdateAssetRequest message = UpdateAssetRequest(playerId: textureId, asset: uri ?? '');
-    await _api.updateAsset(message);
+    final UpdateUriRequest message = UpdateUriRequest(playerId: textureId, uri: uri ?? '');
+    await _api.updateUri(message);
   }
 
   @override

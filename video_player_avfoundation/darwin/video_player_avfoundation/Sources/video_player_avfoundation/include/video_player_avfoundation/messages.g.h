@@ -27,8 +27,7 @@ typedef NS_ENUM(NSUInteger, FVPPlatformVideoViewType) {
 
 @class FVPPlatformVideoViewCreationParams;
 @class FVPCreationOptions;
-@class FVPUpdateMessage;
-@class FVPUpdateAssetRequest;
+@class FVPUpdateUriRequest;
 
 /// Information passed to the platform view creation.
 @interface FVPPlatformVideoViewCreationParams : NSObject
@@ -55,30 +54,13 @@ typedef NS_ENUM(NSUInteger, FVPPlatformVideoViewType) {
 @property(nonatomic, assign) FVPPlatformVideoViewType viewType;
 @end
 
-@interface FVPUpdateMessage : NSObject
-/// `init` unavailable to enforce nonnull fields, see the `make` class method.
-- (instancetype)init NS_UNAVAILABLE;
-+ (instancetype)makeWithTextureId:(NSInteger )textureId
-    asset:(nullable NSString *)asset
-    uri:(nullable NSString *)uri
-    packageName:(nullable NSString *)packageName
-    formatHint:(nullable NSString *)formatHint
-    httpHeaders:(NSDictionary<NSString *, NSString *> *)httpHeaders;
-@property(nonatomic, assign) NSInteger  textureId;
-@property(nonatomic, copy, nullable) NSString * asset;
-@property(nonatomic, copy, nullable) NSString * uri;
-@property(nonatomic, copy, nullable) NSString * packageName;
-@property(nonatomic, copy, nullable) NSString * formatHint;
-@property(nonatomic, copy) NSDictionary<NSString *, NSString *> * httpHeaders;
-@end
-
-@interface FVPUpdateAssetRequest : NSObject
+@interface FVPUpdateUriRequest : NSObject
 /// `init` unavailable to enforce nonnull fields, see the `make` class method.
 - (instancetype)init NS_UNAVAILABLE;
 + (instancetype)makeWithPlayerId:(NSInteger )playerId
-    asset:(NSString *)asset;
+    uri:(NSString *)uri;
 @property(nonatomic, assign) NSInteger  playerId;
-@property(nonatomic, copy) NSString * asset;
+@property(nonatomic, copy) NSString * uri;
 @end
 
 /// The codec used by all APIs.
@@ -88,8 +70,7 @@ NSObject<FlutterMessageCodec> *FVPGetMessagesCodec(void);
 - (void)initialize:(FlutterError *_Nullable *_Nonnull)error;
 /// @return `nil` only when `error != nil`.
 - (nullable NSNumber *)createWithOptions:(FVPCreationOptions *)creationOptions error:(FlutterError *_Nullable *_Nonnull)error;
-- (void)update:(FVPUpdateMessage *)msg error:(FlutterError *_Nullable *_Nonnull)error;
-- (void)updateAsset:(FVPUpdateAssetRequest *)request error:(FlutterError *_Nullable *_Nonnull)error;
+- (void)updateUri:(FVPUpdateUriRequest *)request error:(FlutterError *_Nullable *_Nonnull)error;
 - (void)disposePlayer:(NSInteger)playerId error:(FlutterError *_Nullable *_Nonnull)error;
 - (void)setLooping:(BOOL)isLooping forPlayer:(NSInteger)playerId error:(FlutterError *_Nullable *_Nonnull)error;
 - (void)setVolume:(double)volume forPlayer:(NSInteger)playerId error:(FlutterError *_Nullable *_Nonnull)error;

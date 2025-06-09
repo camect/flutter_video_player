@@ -93,10 +93,9 @@ class _ApiLogger implements TestHostVideoPlayerApi {
   }
 
   @override
-  void update(UpdateMessage msg) {}
-
-  @override
-  void updateAsset(UpdateAssetRequest request) {}
+  void updateUri(UpdateUriRequest request) {
+    // TODO: implement updateUri
+  }
 }
 
 void main() {

@@ -87,7 +87,8 @@
   _nextNonTexturePlayerIdentifier = INT_MAX;
   return self;
 }
-- (void)updateAsset:(FVPUpdateAssetRequest *)input error:(FlutterError **)error {
+
+- (void)updateUri:(FVPUpdateUriRequest *)input error:(FlutterError **)error {
   FVPVideoPlayer *player = self.playersByIdentifier[@(input.playerId)];
   if (![player isKindOfClass:[FVPTextureBasedVideoPlayer class]]) {
     *error = [FlutterError errorWithCode:@"invalid_player"
@@ -98,7 +99,7 @@
 
   FVPTextureBasedVideoPlayer *texturePlayer = (FVPTextureBasedVideoPlayer *)player;
 
-  NSString *path = input.asset;
+  NSString *path = input.uri;
 
   // Check if it's a file URL
   if ([path hasPrefix:@"file://"]) {

@@ -9,8 +9,7 @@ import 'package:pigeon/pigeon.dart';
   dartTestOut: 'test/test_api.g.dart',
   objcHeaderOut:
       'darwin/video_player_avfoundation/Sources/video_player_avfoundation/include/video_player_avfoundation/messages.g.h',
-  objcSourceOut:
-      'darwin/video_player_avfoundation/Sources/video_player_avfoundation/messages.g.m',
+  objcSourceOut: 'darwin/video_player_avfoundation/Sources/video_player_avfoundation/messages.g.m',
   objcOptions: ObjcOptions(
     prefix: 'FVP',
     headerIncludePath: './include/video_player_avfoundation/messages.g.h',
@@ -46,18 +45,9 @@ class CreationOptions {
   Map<String, String> httpHeaders;
   PlatformVideoViewType viewType;
 }
-class UpdateMessage {
-  UpdateMessage(this.textureId, {required this.httpHeaders});
-  int textureId;
-  String? asset;
-  String? uri;
-  String? packageName;
-  String? formatHint;
-  Map<String?, String?> httpHeaders;
-}
-class UpdateAssetRequest {
+class UpdateUriRequest {
   late int playerId;
-  late String asset;
+  late String uri;
 }
 
 @HostApi(dartHostTestHandler: 'TestHostVideoPlayerApi')
@@ -67,10 +57,8 @@ abstract class AVFoundationVideoPlayerApi {
   @ObjCSelector('createWithOptions:')
   // Creates a new player and returns its ID.
   int create(CreationOptions creationOptions);
-  @ObjCSelector('update:')
-  void update(UpdateMessage msg);
-  @ObjCSelector('updateAsset:')
-  void updateAsset(UpdateAssetRequest request);
+  @ObjCSelector('updateUri:')
+  void updateUri(UpdateUriRequest request);
   @ObjCSelector('disposePlayer:')
   void dispose(int playerId);
   @ObjCSelector('setLooping:forPlayer:')

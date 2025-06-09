@@ -53,15 +53,9 @@ static id GetNullableObjectAtIndex(NSArray<id> *array, NSInteger key) {
 - (NSArray<id> *)toList;
 @end
 
-@interface FVPUpdateMessage ()
-+ (FVPUpdateMessage *)fromList:(NSArray<id> *)list;
-+ (nullable FVPUpdateMessage *)nullableFromList:(NSArray<id> *)list;
-- (NSArray<id> *)toList;
-@end
-
-@interface FVPUpdateAssetRequest ()
-+ (FVPUpdateAssetRequest *)fromList:(NSArray<id> *)list;
-+ (nullable FVPUpdateAssetRequest *)nullableFromList:(NSArray<id> *)list;
+@interface FVPUpdateUriRequest ()
++ (FVPUpdateUriRequest *)fromList:(NSArray<id> *)list;
++ (nullable FVPUpdateUriRequest *)nullableFromList:(NSArray<id> *)list;
 - (NSArray<id> *)toList;
 @end
 
@@ -128,68 +122,27 @@ static id GetNullableObjectAtIndex(NSArray<id> *array, NSInteger key) {
 }
 @end
 
-@implementation FVPUpdateMessage
-+ (instancetype)makeWithTextureId:(NSInteger )textureId
-    asset:(nullable NSString *)asset
-    uri:(nullable NSString *)uri
-    packageName:(nullable NSString *)packageName
-    formatHint:(nullable NSString *)formatHint
-    httpHeaders:(NSDictionary<NSString *, NSString *> *)httpHeaders {
-  FVPUpdateMessage* pigeonResult = [[FVPUpdateMessage alloc] init];
-  pigeonResult.textureId = textureId;
-  pigeonResult.asset = asset;
-  pigeonResult.uri = uri;
-  pigeonResult.packageName = packageName;
-  pigeonResult.formatHint = formatHint;
-  pigeonResult.httpHeaders = httpHeaders;
-  return pigeonResult;
-}
-+ (FVPUpdateMessage *)fromList:(NSArray<id> *)list {
-  FVPUpdateMessage *pigeonResult = [[FVPUpdateMessage alloc] init];
-  pigeonResult.textureId = [GetNullableObjectAtIndex(list, 0) integerValue];
-  pigeonResult.asset = GetNullableObjectAtIndex(list, 1);
-  pigeonResult.uri = GetNullableObjectAtIndex(list, 2);
-  pigeonResult.packageName = GetNullableObjectAtIndex(list, 3);
-  pigeonResult.formatHint = GetNullableObjectAtIndex(list, 4);
-  pigeonResult.httpHeaders = GetNullableObjectAtIndex(list, 5);
-  return pigeonResult;
-}
-+ (nullable FVPUpdateMessage *)nullableFromList:(NSArray<id> *)list {
-  return (list) ? [FVPUpdateMessage fromList:list] : nil;
-}
-- (NSArray<id> *)toList {
-  return @[
-    @(self.textureId),
-    self.asset ?: [NSNull null],
-    self.uri ?: [NSNull null],
-    self.packageName ?: [NSNull null],
-    self.formatHint ?: [NSNull null],
-    self.httpHeaders ?: [NSNull null],
-  ];
-}
-@end
-
-@implementation FVPUpdateAssetRequest
+@implementation FVPUpdateUriRequest
 + (instancetype)makeWithPlayerId:(NSInteger )playerId
-    asset:(NSString *)asset {
-  FVPUpdateAssetRequest* pigeonResult = [[FVPUpdateAssetRequest alloc] init];
+    uri:(NSString *)uri {
+  FVPUpdateUriRequest* pigeonResult = [[FVPUpdateUriRequest alloc] init];
   pigeonResult.playerId = playerId;
-  pigeonResult.asset = asset;
+  pigeonResult.uri = uri;
   return pigeonResult;
 }
-+ (FVPUpdateAssetRequest *)fromList:(NSArray<id> *)list {
-  FVPUpdateAssetRequest *pigeonResult = [[FVPUpdateAssetRequest alloc] init];
++ (FVPUpdateUriRequest *)fromList:(NSArray<id> *)list {
+  FVPUpdateUriRequest *pigeonResult = [[FVPUpdateUriRequest alloc] init];
   pigeonResult.playerId = [GetNullableObjectAtIndex(list, 0) integerValue];
-  pigeonResult.asset = GetNullableObjectAtIndex(list, 1);
+  pigeonResult.uri = GetNullableObjectAtIndex(list, 1);
   return pigeonResult;
 }
-+ (nullable FVPUpdateAssetRequest *)nullableFromList:(NSArray<id> *)list {
-  return (list) ? [FVPUpdateAssetRequest fromList:list] : nil;
++ (nullable FVPUpdateUriRequest *)nullableFromList:(NSArray<id> *)list {
+  return (list) ? [FVPUpdateUriRequest fromList:list] : nil;
 }
 - (NSArray<id> *)toList {
   return @[
     @(self.playerId),
-    self.asset ?: [NSNull null],
+    self.uri ?: [NSNull null],
   ];
 }
 @end
@@ -208,9 +161,7 @@ static id GetNullableObjectAtIndex(NSArray<id> *array, NSInteger key) {
     case 131: 
       return [FVPCreationOptions fromList:[self readValue]];
     case 132: 
-      return [FVPUpdateMessage fromList:[self readValue]];
-    case 133: 
-      return [FVPUpdateAssetRequest fromList:[self readValue]];
+      return [FVPUpdateUriRequest fromList:[self readValue]];
     default:
       return [super readValueOfType:type];
   }
@@ -231,11 +182,8 @@ static id GetNullableObjectAtIndex(NSArray<id> *array, NSInteger key) {
   } else if ([value isKindOfClass:[FVPCreationOptions class]]) {
     [self writeByte:131];
     [self writeValue:[value toList]];
-  } else if ([value isKindOfClass:[FVPUpdateMessage class]]) {
+  } else if ([value isKindOfClass:[FVPUpdateUriRequest class]]) {
     [self writeByte:132];
-    [self writeValue:[value toList]];
-  } else if ([value isKindOfClass:[FVPUpdateAssetRequest class]]) {
-    [self writeByte:133];
     [self writeValue:[value toList]];
   } else {
     [super writeValue:value];
@@ -308,35 +256,16 @@ void SetUpFVPAVFoundationVideoPlayerApiWithSuffix(id<FlutterBinaryMessenger> bin
   {
     FlutterBasicMessageChannel *channel =
       [[FlutterBasicMessageChannel alloc]
-        initWithName:[NSString stringWithFormat:@"%@%@", @"dev.flutter.pigeon.video_player_avfoundation.AVFoundationVideoPlayerApi.update", messageChannelSuffix]
+        initWithName:[NSString stringWithFormat:@"%@%@", @"dev.flutter.pigeon.video_player_avfoundation.AVFoundationVideoPlayerApi.updateUri", messageChannelSuffix]
         binaryMessenger:binaryMessenger
         codec:FVPGetMessagesCodec()];
     if (api) {
-      NSCAssert([api respondsToSelector:@selector(update:error:)], @"FVPAVFoundationVideoPlayerApi api (%@) doesn't respond to @selector(update:error:)", api);
+      NSCAssert([api respondsToSelector:@selector(updateUri:error:)], @"FVPAVFoundationVideoPlayerApi api (%@) doesn't respond to @selector(updateUri:error:)", api);
       [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
         NSArray<id> *args = message;
-        FVPUpdateMessage *arg_msg = GetNullableObjectAtIndex(args, 0);
+        FVPUpdateUriRequest *arg_request = GetNullableObjectAtIndex(args, 0);
         FlutterError *error;
-        [api update:arg_msg error:&error];
-        callback(wrapResult(nil, error));
-      }];
-    } else {
-      [channel setMessageHandler:nil];
-    }
-  }
-  {
-    FlutterBasicMessageChannel *channel =
-      [[FlutterBasicMessageChannel alloc]
-        initWithName:[NSString stringWithFormat:@"%@%@", @"dev.flutter.pigeon.video_player_avfoundation.AVFoundationVideoPlayerApi.updateAsset", messageChannelSuffix]
-        binaryMessenger:binaryMessenger
-        codec:FVPGetMessagesCodec()];
-    if (api) {
-      NSCAssert([api respondsToSelector:@selector(updateAsset:error:)], @"FVPAVFoundationVideoPlayerApi api (%@) doesn't respond to @selector(updateAsset:error:)", api);
-      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
-        NSArray<id> *args = message;
-        FVPUpdateAssetRequest *arg_request = GetNullableObjectAtIndex(args, 0);
-        FlutterError *error;
-        [api updateAsset:arg_request error:&error];
+        [api updateUri:arg_request error:&error];
         callback(wrapResult(nil, error));
       }];
     } else {
