@@ -47,8 +47,8 @@ static void *rateContext = &rateContext;
   NSAssert(self, @"super init cannot be nil");
 
   _registrar = registrar;
-  _isInitialized = NO; // Player is not initialized yet.
-  _disposed = NO;      // Player is not disposed.
+  _isInitialized = NO;
+  _disposed = NO;
 
   AVAsset *asset = [item asset];
   void (^assetCompletionHandler)(void) = ^{
@@ -185,6 +185,7 @@ NS_INLINE CGFloat radiansToDegrees(CGFloat radians) {
     // Convert -90 to 270 and -180 to 180
     return degrees + 360;
   }
+  // Output degrees in between [0, 360]
   return degrees;
 };
 
@@ -503,8 +504,6 @@ NS_INLINE CGFloat radiansToDegrees(CGFloat radians) {
 ///
 /// This is called from dealloc, so must not use any methods on self.
 - (void)removeKeyValueObservers {
-  // Remove observers from the current AVPlayerItem.
-  // This uses the new method to correctly remove item-specific observers.
   AVPlayerItem *currentItem = _player.currentItem;
   [self removeObserversFromPlayerItem:currentItem player:_player];
 
