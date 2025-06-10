@@ -33,6 +33,7 @@ import androidx.media3.exoplayer.dash.DefaultDashChunkSource;
 import androidx.media3.common.util.Util;
 import androidx.media3.exoplayer.smoothstreaming.SsMediaSource;
 import androidx.media3.exoplayer.smoothstreaming.DefaultSsChunkSource;
+import android.view.SurfaceHolder;
 
 
 final class VideoPlayer implements TextureRegistry.SurfaceProducer.Callback {
@@ -180,8 +181,7 @@ public DefaultHttpDataSource.Factory buildHttpDataSourceFactory(@NonNull Map<Str
 
   @RestrictTo(RestrictTo.Scope.LIBRARY)
   // TODO(matanlurey): https://github.com/flutter/flutter/issues/155131.
-  @SuppressWarnings({ "deprecation", "removal" })
-  public void onSurfaceCreated() {
+  public void surfaceCreated(SurfaceHolder holder) {
     if (savedStateDuring != null) {
       exoPlayer = createVideoPlayer();
       savedStateDuring.restore(exoPlayer);
@@ -190,7 +190,7 @@ public DefaultHttpDataSource.Factory buildHttpDataSourceFactory(@NonNull Map<Str
   }
 
   @RestrictTo(RestrictTo.Scope.LIBRARY)
-  public void onSurfaceDestroyed() {
+  public void surfaceDestroyed(SurfaceHolder holder) {
     // Intentionally do not call pause/stop here, because the surface has already
     // been released
     // at this point (see https://github.com/flutter/flutter/issues/156451).
