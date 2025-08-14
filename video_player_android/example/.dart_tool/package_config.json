@@ -93,19 +93,19 @@
     },
     {
       "name": "flutter",
-      "rootUri": "file:///Users/nikhil.va/Documents/flutter3293/packages/flutter",
+      "rootUri": "file:///Users/nikhil.va/Documents/flutter/packages/flutter",
       "packageUri": "lib/",
       "languageVersion": "3.7"
     },
     {
       "name": "flutter_driver",
-      "rootUri": "file:///Users/nikhil.va/Documents/flutter3293/packages/flutter_driver",
+      "rootUri": "file:///Users/nikhil.va/Documents/flutter/packages/flutter_driver",
       "packageUri": "lib/",
       "languageVersion": "3.7"
     },
     {
       "name": "flutter_test",
-      "rootUri": "file:///Users/nikhil.va/Documents/flutter3293/packages/flutter_test",
+      "rootUri": "file:///Users/nikhil.va/Documents/flutter/packages/flutter_test",
       "packageUri": "lib/",
       "languageVersion": "3.7"
     },
@@ -117,7 +117,7 @@
     },
     {
       "name": "fuchsia_remote_debug_protocol",
-      "rootUri": "file:///Users/nikhil.va/Documents/flutter3293/packages/fuchsia_remote_debug_protocol",
+      "rootUri": "file:///Users/nikhil.va/Documents/flutter/packages/fuchsia_remote_debug_protocol",
       "packageUri": "lib/",
       "languageVersion": "3.7"
     },
@@ -141,7 +141,7 @@
     },
     {
       "name": "integration_test",
-      "rootUri": "file:///Users/nikhil.va/Documents/flutter3293/packages/integration_test",
+      "rootUri": "file:///Users/nikhil.va/Documents/flutter/packages/integration_test",
       "packageUri": "lib/",
       "languageVersion": "3.7"
     },
@@ -315,7 +315,7 @@
     },
     {
       "name": "sky_engine",
-      "rootUri": "file:///Users/nikhil.va/Documents/flutter3293/bin/cache/pkg/sky_engine",
+      "rootUri": "file:///Users/nikhil.va/Documents/flutter/bin/cache/pkg/sky_engine",
       "packageUri": "lib/",
       "languageVersion": "3.7"
     },
@@ -470,10 +470,10 @@
       "languageVersion": "3.5"
     }
   ],
-  "generated": "2025-06-20T10:00:02.333942Z",
+  "generated": "2025-08-14T05:19:14.467189Z",
   "generator": "pub",
   "generatorVersion": "3.7.2",
-  "flutterRoot": "file:///Users/nikhil.va/Documents/flutter3293",
+  "flutterRoot": "file:///Users/nikhil.va/Documents/flutter",
   "flutterVersion": "3.29.3",
   "pubCache": "file:///Users/nikhil.va/.pub-cache"
 }
