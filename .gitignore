@@ -25,6 +25,9 @@ pubspec.lock
 **/android/**/intermediates/
 **/android/**/outputs/
 **/android/**/tmp/
+**/gradlew
+**/gradlew.bat
+**/gradle-wrapper.jar
 
 # --- iOS ---
 **/ios/Pods/
@@ -33,6 +36,10 @@ pubspec.lock
 **/ios/Flutter/ephemeral/
 **/ios/DerivedData/
 
-# --- Optional (configs/secrets) ---
+
+# --- Others ---
 **/android/app/src/main/res/raw/awsconfiguration.json
 **/android/app/src/main/res/raw/amplifyconfiguration.json
+**/GeneratedPluginRegistrant.*
+**/Generated.xcconfig
+**/flutter_export_environment.sh
