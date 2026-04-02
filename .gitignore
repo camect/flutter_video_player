@@ -1,5 +1,38 @@
-video_player_android/example/.dart_tool/
-video_player_android/.dart_tool/
-video_player/.dart_tool/
-video_player_avfoundation/example/.dart_tool/
-video_player_avfoundation/.dart_tool/
+# --- System ---
+.DS_Store
+*.log
+*.swp
+
+# --- IDEs ---
+.idea/
+.vscode/
+*.iml
+
+# --- Dart / Flutter ---
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+pubspec.lock
+build/
+
+# --- Android ---
+android/.gradle/
+android/local.properties
+android/key.properties
+android/**/build/
+android/**/generated/
+android/**/intermediates/
+android/**/outputs/
+android/**/tmp/
+
+# --- iOS ---
+ios/Pods/
+ios/Podfile.lock
+ios/.symlinks/
+ios/Flutter/ephemeral/
+ios/DerivedData/
+
+# --- Optional (configs/secrets) ---
+android/app/src/main/res/raw/awsconfiguration.json
+android/app/src/main/res/raw/amplifyconfiguration.json
