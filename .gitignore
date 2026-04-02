@@ -9,30 +9,30 @@
 *.iml
 
 # --- Dart / Flutter ---
-.dart_tool/
+**/.dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
 .packages
 pubspec.lock
-build/
+**/build/
 
 # --- Android ---
-android/.gradle/
-android/local.properties
-android/key.properties
-android/**/build/
-android/**/generated/
-android/**/intermediates/
-android/**/outputs/
-android/**/tmp/
+**/.gradle/
+**/local.properties
+**/key.properties
+**/android/**/build/
+**/android/**/generated/
+**/android/**/intermediates/
+**/android/**/outputs/
+**/android/**/tmp/
 
 # --- iOS ---
-ios/Pods/
-ios/Podfile.lock
-ios/.symlinks/
-ios/Flutter/ephemeral/
-ios/DerivedData/
+**/ios/Pods/
+**/ios/Podfile.lock
+**/ios/.symlinks/
+**/ios/Flutter/ephemeral/
+**/ios/DerivedData/
 
 # --- Optional (configs/secrets) ---
-android/app/src/main/res/raw/awsconfiguration.json
-android/app/src/main/res/raw/amplifyconfiguration.json
+**/android/app/src/main/res/raw/awsconfiguration.json
+**/android/app/src/main/res/raw/amplifyconfiguration.json
