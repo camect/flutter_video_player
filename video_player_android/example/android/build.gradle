@@ -5,13 +5,13 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.4.2'
+        classpath 'com.android.tools.build:gradle:8.5.1'
     }
 }
 
 allprojects {
     repositories {
-        // See https://github.com/flutter/flutter/wiki/Plugins-and-Packages-repository-structure#gradle-structure for more info.
+        // See https://github.com/flutter/flutter/blob/master/docs/ecosystem/Plugins-and-Packages-repository-structure.md#gradle-structure for more info.
         def artifactRepoKey = 'ARTIFACT_HUB_REPOSITORY'
         if (System.getenv().containsKey(artifactRepoKey)) {
             println "Using artifact hub"

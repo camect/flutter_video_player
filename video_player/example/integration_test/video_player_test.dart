@@ -190,13 +190,19 @@ void main() {
         expect(controller.value.position,
             lessThanOrEqualTo(controller.value.duration));
       },
+      // Flaky on the web, headless browsers don't like to seek to non-buffered
+      // positions of a video (and since this isn't even injecting the video
+      // element on the page, the video never starts buffering with the test)
+      skip: kIsWeb,
     );
 
     testWidgets('test video player view with local asset',
         (WidgetTester tester) async {
+      final Completer<void> loaded = Completer<void>();
       Future<bool> started() async {
         await controller.initialize();
         await controller.play();
+        loaded.complete();
         return true;
       }
 
@@ -221,12 +227,12 @@ void main() {
         ),
       ));
 
+      await loaded.future;
       await tester.pumpAndSettle();
       expect(controller.value.isPlaying, true);
     },
-        skip: kIsWeb || // Web does not support local assets.
-            // Extremely flaky on iOS: https://github.com/flutter/flutter/issues/86915
-            defaultTargetPlatform == TargetPlatform.iOS);
+        // Web does not support local assets.
+        skip: kIsWeb);
   });
 
   group('file-based videos', () {
@@ -293,7 +299,11 @@ void main() {
         await expectLater(started.future, completes);
         await expectLater(ended.future, completes);
       },
-      skip: !(kIsWeb || defaultTargetPlatform == TargetPlatform.android),
+      skip:
+          // MEDIA_ELEMENT_ERROR on web, see https://github.com/flutter/flutter/issues/169219
+          kIsWeb ||
+              // Hanging on Android, see https://github.com/flutter/flutter/issues/160797
+              defaultTargetPlatform == TargetPlatform.android,
     );
   });
 

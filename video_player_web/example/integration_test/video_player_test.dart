@@ -3,6 +3,8 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -27,6 +29,18 @@ void main() {
         ..playsInline = false;
     });
 
+    testWidgets('initialize() calls load', (WidgetTester _) async {
+      bool loadCalled = false;
+
+      video['load'] = () {
+        loadCalled = true;
+      }.toJS;
+
+      VideoPlayer(videoElement: video).initialize();
+
+      expect(loadCalled, isTrue);
+    });
+
     testWidgets('fixes critical video element config', (WidgetTester _) async {
       VideoPlayer(videoElement: video).initialize();
 
@@ -44,9 +58,14 @@ void main() {
       final VideoPlayer player = VideoPlayer(videoElement: video)..initialize();
 
       player.setVolume(0);
-
-      expect(video.volume, isZero, reason: 'Volume should be zero');
       expect(video.muted, isTrue, reason: 'muted attribute should be true');
+      // If the volume is set to zero, pressing unmute
+      // button may not restore the audio as expected.
+      expect(video.volume, greaterThan(0),
+          reason: 'Volume should not be set to zero when muted');
+      player.setVolume(0.5);
+      expect(video.volume, 0.5, reason: 'Volume should be set to 0.5');
+      expect(video.muted, isFalse, reason: 'Muted attribute should be false');
 
       expect(() {
         player.setVolume(-0.0001);
@@ -123,6 +142,11 @@ void main() {
             sink.close();
           },
         );
+      });
+
+      tearDown(() {
+        streamController.close();
+        player.dispose();
       });
 
       testWidgets('buffering dispatches only when it changes',
@@ -217,8 +241,7 @@ void main() {
         expect(events[0].eventType, VideoEventType.initialized);
       });
 
-      // Issue: https://github.com/flutter/flutter/issues/137023
-      testWidgets('loadedmetadata dispatches initialized',
+      testWidgets('loadedmetadata does not dispatch initialized',
           (WidgetTester tester) async {
         video.dispatchEvent(web.Event('loadedmetadata'));
         video.dispatchEvent(web.Event('loadedmetadata'));
@@ -230,8 +253,22 @@ void main() {
 
         final List<VideoEvent> events = await stream;
 
-        expect(events, hasLength(1));
-        expect(events[0].eventType, VideoEventType.initialized);
+        expect(events, isEmpty);
+      });
+
+      testWidgets('loadeddata does not dispatch initialized',
+          (WidgetTester tester) async {
+        video.dispatchEvent(web.Event('loadeddata'));
+        video.dispatchEvent(web.Event('loadeddata'));
+
+        final Future<List<VideoEvent>> stream = timedStream
+            .where((VideoEvent event) =>
+                event.eventType == VideoEventType.initialized)
+            .toList();
+
+        final List<VideoEvent> events = await stream;
+
+        expect(events, isEmpty);
       });
 
       // Issue: https://github.com/flutter/flutter/issues/105649

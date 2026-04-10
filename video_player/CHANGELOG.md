@@ -1,3 +1,43 @@
+## NEXT
+
+* Updates README to indicate that Andoid SDK <21 is no longer supported.
+* Updates minimum supported SDK version to Flutter 3.27/Dart 3.6.
+
+## 2.9.5
+
+* Fixes layout issue caused by `Transform.rotate` not affecting space calculation.
+
+## 2.9.4
+
+* Reduces the position update interval from 500ms to 100ms.
+
+## 2.9.3
+
+* Updates minimum supported SDK version to Flutter 3.22/Dart 3.4.
+* Fixes mechanism to detect identifier in multi-line WebVTT captions.
+
+## 2.9.2
+
+* Updates minimum supported SDK version to Flutter 3.19/Dart 3.3.
+* Throws a more descriptive `StateError` in the case where 
+  `VideoPlayerController.initialize` receives more than one `initialized` event.
+
+## 2.9.1
+
+* Updates minimum web implementation version to ensure support for
+  the new `webOptions` exposed in `2.9.0`.
+
+## 2.9.0
+
+* Exports types: `VideoPlayerWebOptions` and `VideoPlayerWebOptionsControls` to
+  customize the `webOptions` field in `VideoPlayerOptions` objects.
+* Forwards `webOptions` to the web implementation.
+
+## 2.8.7
+
+* Ensures that `value.position` never reports a value larger than `value.duration`.
+* Updates minimum supported SDK version to Flutter 3.16/Dart 3.2.
+
 ## 2.8.6
 
 * Updates minimum iOS implementation version to include a privacy manifest.

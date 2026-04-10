@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#import "../FVPDisplayLink.h"
+#import "../video_player_avfoundation/include/video_player_avfoundation/FVPDisplayLink.h"
 
 #import <CoreVideo/CoreVideo.h>
 #import <Foundation/Foundation.h>
@@ -79,6 +79,14 @@ static CVReturn DisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTimeSt
   } else {
     CVDisplayLinkStop(self.displayLink);
   }
+}
+
+- (CFTimeInterval)duration {
+  CVTimeStamp timestamp = {.version = 0};
+  if (CVDisplayLinkGetCurrentTime(self.displayLink, &timestamp) != kCVReturnSuccess) {
+    return 0;
+  }
+  return (CFTimeInterval)timestamp.videoRefreshPeriod / timestamp.videoTimeScale;
 }
 
 @end

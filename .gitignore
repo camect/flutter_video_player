@@ -1,0 +1,45 @@
+# --- System ---
+.DS_Store
+*.log
+*.swp
+
+# --- IDEs ---
+.idea/
+.vscode/
+*.iml
+
+# --- Dart / Flutter ---
+**/.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+pubspec.lock
+**/build/
+
+# --- Android ---
+**/.gradle/
+**/local.properties
+**/key.properties
+**/android/**/build/
+**/android/**/generated/
+**/android/**/intermediates/
+**/android/**/outputs/
+**/android/**/tmp/
+**/gradlew
+**/gradlew.bat
+**/gradle-wrapper.jar
+
+# --- iOS ---
+**/ios/Pods/
+**/ios/Podfile.lock
+**/ios/.symlinks/
+**/ios/Flutter/ephemeral/
+**/ios/DerivedData/
+
+
+# --- Others ---
+**/android/app/src/main/res/raw/awsconfiguration.json
+**/android/app/src/main/res/raw/amplifyconfiguration.json
+**/GeneratedPluginRegistrant.*
+**/Generated.xcconfig
+**/flutter_export_environment.sh
