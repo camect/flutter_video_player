@@ -740,6 +740,55 @@ public class Messages {
     }
   }
 
+  /** Generated class from Pigeon that represents data sent in messages. */
+  public static final class AndroidOptionsMessage {
+    private @NonNull Boolean useSoftwareDecoding;
+
+    public @NonNull Boolean getUseSoftwareDecoding() {
+      return useSoftwareDecoding;
+    }
+
+    public void setUseSoftwareDecoding(@NonNull Boolean setterArg) {
+      if (setterArg == null) {
+        throw new IllegalStateException("Nonnull field \"useSoftwareDecoding\" is null.");
+      }
+      this.useSoftwareDecoding = setterArg;
+    }
+
+    /** Constructor is non-public to enforce null safety; use Builder. */
+    AndroidOptionsMessage() {}
+
+    public static final class Builder {
+
+      private @Nullable Boolean useSoftwareDecoding;
+
+      public @NonNull Builder setUseSoftwareDecoding(@NonNull Boolean setterArg) {
+        this.useSoftwareDecoding = setterArg;
+        return this;
+      }
+
+      public @NonNull AndroidOptionsMessage build() {
+        AndroidOptionsMessage pigeonReturn = new AndroidOptionsMessage();
+        pigeonReturn.setUseSoftwareDecoding(useSoftwareDecoding);
+        return pigeonReturn;
+      }
+    }
+
+    @NonNull
+    ArrayList<Object> toList() {
+      ArrayList<Object> toListResult = new ArrayList<Object>(1);
+      toListResult.add(useSoftwareDecoding);
+      return toListResult;
+    }
+
+    static @NonNull AndroidOptionsMessage fromList(@NonNull ArrayList<Object> list) {
+      AndroidOptionsMessage pigeonResult = new AndroidOptionsMessage();
+      Object useSoftwareDecoding = list.get(0);
+      pigeonResult.setUseSoftwareDecoding((Boolean) useSoftwareDecoding);
+      return pigeonResult;
+    }
+  }
+
   private static class AndroidVideoPlayerApiCodec extends StandardMessageCodec {
     public static final AndroidVideoPlayerApiCodec INSTANCE = new AndroidVideoPlayerApiCodec();
 
@@ -749,20 +798,22 @@ public class Messages {
     protected Object readValueOfType(byte type, @NonNull ByteBuffer buffer) {
       switch (type) {
         case (byte) 128:
-          return CreateMessage.fromList((ArrayList<Object>) readValue(buffer));
+          return AndroidOptionsMessage.fromList((ArrayList<Object>) readValue(buffer));
         case (byte) 129:
-          return LoopingMessage.fromList((ArrayList<Object>) readValue(buffer));
+          return CreateMessage.fromList((ArrayList<Object>) readValue(buffer));
         case (byte) 130:
-          return MixWithOthersMessage.fromList((ArrayList<Object>) readValue(buffer));
+          return LoopingMessage.fromList((ArrayList<Object>) readValue(buffer));
         case (byte) 131:
-          return PlaybackSpeedMessage.fromList((ArrayList<Object>) readValue(buffer));
+          return MixWithOthersMessage.fromList((ArrayList<Object>) readValue(buffer));
         case (byte) 132:
-          return PositionMessage.fromList((ArrayList<Object>) readValue(buffer));
+          return PlaybackSpeedMessage.fromList((ArrayList<Object>) readValue(buffer));
         case (byte) 133:
-          return TextureMessage.fromList((ArrayList<Object>) readValue(buffer));
+          return PositionMessage.fromList((ArrayList<Object>) readValue(buffer));
         case (byte) 134:
-          return UpdateMessage.fromList((ArrayList<Object>) readValue(buffer));
+          return TextureMessage.fromList((ArrayList<Object>) readValue(buffer));
         case (byte) 135:
+          return UpdateMessage.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 136:
           return VolumeMessage.fromList((ArrayList<Object>) readValue(buffer));
         default:
           return super.readValueOfType(type, buffer);
@@ -771,29 +822,32 @@ public class Messages {
 
     @Override
     protected void writeValue(@NonNull ByteArrayOutputStream stream, Object value) {
-      if (value instanceof CreateMessage) {
+      if (value instanceof AndroidOptionsMessage) {
         stream.write(128);
+        writeValue(stream, ((AndroidOptionsMessage) value).toList());
+      } else if (value instanceof CreateMessage) {
+        stream.write(129);
         writeValue(stream, ((CreateMessage) value).toList());
       } else if (value instanceof LoopingMessage) {
-        stream.write(129);
+        stream.write(130);
         writeValue(stream, ((LoopingMessage) value).toList());
       } else if (value instanceof MixWithOthersMessage) {
-        stream.write(130);
+        stream.write(131);
         writeValue(stream, ((MixWithOthersMessage) value).toList());
       } else if (value instanceof PlaybackSpeedMessage) {
-        stream.write(131);
+        stream.write(132);
         writeValue(stream, ((PlaybackSpeedMessage) value).toList());
       } else if (value instanceof PositionMessage) {
-        stream.write(132);
+        stream.write(133);
         writeValue(stream, ((PositionMessage) value).toList());
       } else if (value instanceof TextureMessage) {
-        stream.write(133);
+        stream.write(134);
         writeValue(stream, ((TextureMessage) value).toList());
       } else if (value instanceof UpdateMessage) {
-        stream.write(134);
+        stream.write(135);
         writeValue(stream, ((UpdateMessage) value).toList());
       } else if (value instanceof VolumeMessage) {
-        stream.write(135);
+        stream.write(136);
         writeValue(stream, ((VolumeMessage) value).toList());
       } else {
         super.writeValue(stream, value);
@@ -829,6 +883,8 @@ public class Messages {
     void pause(@NonNull TextureMessage msg);
 
     void setMixWithOthers(@NonNull MixWithOthersMessage msg);
+
+    void setAndroidOptions(@NonNull AndroidOptionsMessage msg);
 
     /** The codec used by AndroidVideoPlayerApi. */
     static @NonNull MessageCodec<Object> getCodec() {
@@ -1110,6 +1166,30 @@ public class Messages {
                 MixWithOthersMessage msgArg = (MixWithOthersMessage) args.get(0);
                 try {
                   api.setMixWithOthers(msgArg);
+                  wrapped.add(0, null);
+                }
+ catch (Throwable exception) {
+                  ArrayList<Object> wrappedError = wrapError(exception);
+                  wrapped = wrappedError;
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.AndroidVideoPlayerApi.setAndroidOptions", getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<Object>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                AndroidOptionsMessage msgArg = (AndroidOptionsMessage) args.get(0);
+                try {
+                  api.setAndroidOptions(msgArg);
                   wrapped.add(0, null);
                 }
  catch (Throwable exception) {

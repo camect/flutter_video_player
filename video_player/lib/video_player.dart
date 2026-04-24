@@ -427,6 +427,11 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       await _videoPlayerPlatform.setMixWithOthers(videoPlayerOptions!.mixWithOthers);
     }
 
+    if (videoPlayerOptions?.androidOptions != null) {
+      await _videoPlayerPlatform
+          .setAndroidOptions(videoPlayerOptions!.androidOptions!);
+    }
+
     _textureId =
         (await _videoPlayerPlatform.create(dataSourceDescription)) ?? kUninitializedTextureId;
     _creatingCompleter!.complete(null);

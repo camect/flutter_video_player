@@ -211,6 +211,11 @@ public class VideoPlayerPlugin implements FlutterPlugin, AndroidVideoPlayerApi {
     options.mixWithOthers = arg.getMixWithOthers();
   }
 
+  @Override
+  public void setAndroidOptions(@NonNull Messages.AndroidOptionsMessage arg) {
+    options.useSoftwareDecoding = arg.getUseSoftwareDecoding();
+  }
+
   private interface KeyForAssetFn {
     String get(String asset);
   }

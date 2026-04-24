@@ -19,6 +19,7 @@ class _ApiLogger implements TestHostVideoPlayerApi {
   VolumeMessage? volumeMessage;
   PlaybackSpeedMessage? playbackSpeedMessage;
   MixWithOthersMessage? mixWithOthersMessage;
+  AndroidOptionsMessage? androidOptionsMessage;
 
   @override
   TextureMessage create(CreateMessage arg) {
@@ -54,6 +55,12 @@ class _ApiLogger implements TestHostVideoPlayerApi {
   void setMixWithOthers(MixWithOthersMessage arg) {
     log.add('setMixWithOthers');
     mixWithOthersMessage = arg;
+  }
+
+  @override
+  void setAndroidOptions(AndroidOptionsMessage arg) {
+    log.add('setAndroidOptions');
+    androidOptionsMessage = arg;
   }
 
   @override
@@ -212,6 +219,18 @@ void main() {
       await player.setMixWithOthers(false);
       expect(log.log.last, 'setMixWithOthers');
       expect(log.mixWithOthersMessage?.mixWithOthers, false);
+    });
+
+    test('setAndroidOptions', () async {
+      await player.setAndroidOptions(
+          const VideoPlayerAndroidOptions(useSoftwareDecoding: true));
+      expect(log.log.last, 'setAndroidOptions');
+      expect(log.androidOptionsMessage?.useSoftwareDecoding, true);
+
+      await player.setAndroidOptions(
+          const VideoPlayerAndroidOptions(useSoftwareDecoding: false));
+      expect(log.log.last, 'setAndroidOptions');
+      expect(log.androidOptionsMessage?.useSoftwareDecoding, false);
     });
 
     test('setVolume', () async {

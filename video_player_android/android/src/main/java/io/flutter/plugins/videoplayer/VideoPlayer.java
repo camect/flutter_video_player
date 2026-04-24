@@ -18,8 +18,14 @@ import androidx.media3.common.C;
 import androidx.media3.common.MimeTypes; 
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.PlaybackParameters;
+import androidx.media3.exoplayer.DefaultRenderersFactory;
 import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.mediacodec.MediaCodecInfo;
+import androidx.media3.exoplayer.mediacodec.MediaCodecSelector;
+import androidx.media3.exoplayer.mediacodec.MediaCodecUtil;
 import io.flutter.view.TextureRegistry;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map; 
 
 final class VideoPlayer {
@@ -52,8 +58,26 @@ final class VideoPlayer {
       TextureRegistry.SurfaceTextureEntry textureEntry,
       VideoAsset asset,
       VideoPlayerOptions options) {
+    DefaultRenderersFactory renderersFactory = new DefaultRenderersFactory(context);
+    if (options.useSoftwareDecoding) {
+      renderersFactory.setMediaCodecSelector(
+          (mimeType, requiresSecureDecoder, requiresTunnelingDecoder) -> {
+            List<MediaCodecInfo> decoderInfos =
+                MediaCodecUtil.getDecoderInfos(
+                    mimeType, requiresSecureDecoder, requiresTunnelingDecoder);
+            List<MediaCodecInfo> softwareDecoders = new ArrayList<>();
+            for (MediaCodecInfo info : decoderInfos) {
+              if (info.name.startsWith("OMX.google.") || info.name.startsWith("c2.android.")) {
+                softwareDecoders.add(info);
+              }
+            }
+            return softwareDecoders;
+          });
+    }
+
     ExoPlayer.Builder builder =
-        new ExoPlayer.Builder(context).setMediaSourceFactory(asset.getMediaSourceFactory(context));
+        new ExoPlayer.Builder(context, renderersFactory)
+            .setMediaSourceFactory(asset.getMediaSourceFactory(context));
     return new VideoPlayer(builder, events, textureEntry, asset.getMediaItem(), options);
   }
 

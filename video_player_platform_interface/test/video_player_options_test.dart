@@ -20,4 +20,11 @@ void main() {
       expect(options.mixWithOthers, false);
     },
   );
+  test(
+    'VideoPlayerOptions androidOptions defaults to null',
+    () {
+      final VideoPlayerOptions options = VideoPlayerOptions();
+      expect(options.androidOptions, null);
+    },
+  );
 }
