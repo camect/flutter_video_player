@@ -19,7 +19,12 @@ import androidx.media3.common.MimeTypes;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.PlaybackParameters;
 import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.DefaultRenderersFactory;
+import androidx.media3.exoplayer.mediacodec.MediaCodecInfo;
+import androidx.media3.exoplayer.mediacodec.MediaCodecSelector;
 import io.flutter.view.TextureRegistry;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map; 
 
 final class VideoPlayer {
@@ -34,6 +39,19 @@ final class VideoPlayer {
   private static final String FORMAT_HLS = "hls";
   private static final String FORMAT_OTHER = "other";
   private static final String USER_AGENT = "User-Agent";
+
+  private static final MediaCodecSelector SOFTWARE_ONLY_SELECTOR =
+    (mimeType, requiresSecureDecoder, requiresTunnelingDecoder) -> {
+      List<MediaCodecInfo> software = new ArrayList<>();
+      for (MediaCodecInfo info :
+          MediaCodecSelector.DEFAULT.getDecoderInfos(
+              mimeType, requiresSecureDecoder, requiresTunnelingDecoder)) {
+        if (!info.hardwareAccelerated) {
+          software.add(info);
+        }
+      }
+      return software;
+    };
 
   /**
    * Creates a video player.
@@ -53,7 +71,10 @@ final class VideoPlayer {
       VideoAsset asset,
       VideoPlayerOptions options) {
     ExoPlayer.Builder builder =
-        new ExoPlayer.Builder(context).setMediaSourceFactory(asset.getMediaSourceFactory(context));
+    new ExoPlayer.Builder(context)
+        .setMediaSourceFactory(asset.getMediaSourceFactory(context))
+        .setRenderersFactory(
+            new DefaultRenderersFactory(context).setMediaCodecSelector(SOFTWARE_ONLY_SELECTOR));
     return new VideoPlayer(builder, events, textureEntry, asset.getMediaItem(), options);
   }
 
